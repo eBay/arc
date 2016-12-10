@@ -12,9 +12,17 @@ it('should resolve adaptive files', function() {
     expect(resolvedStyle2).to.equal(require.resolve('./files/style.css'));
 });
 
-it('should resolve adaptive directories');
-
-it('should handle adaptive directories on the server', function() {
-    var component = require('./component');
-    console.log(component);
+it('should resolve adaptive directories', function() {
+    var flags = { mobile:true, ios:true };
+    var resolvedComponent = resolveFrom(__filename, './component', { flags });
+    expect(resolvedComponent).to.equal(require.resolve('./component/mobile.ios/index.js'));
 });
+
+it('should handle adaptive directories via require-hook', function() {
+    var component = require('./component');
+    expect(component({ mobile:true })).to.equal('component/mobile');
+});
+
+it('should handle defaults for adaptive directories');
+
+it('should allow the default for adaptive directories to be configured');

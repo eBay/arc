@@ -7,7 +7,6 @@ var fileMatches = {};
 exports.resolveFrom = resolveFrom;
 exports.adaptFile = adaptFile;
 exports.getFileMatches = getFileMatches;
-exports.getDirectoryMatches = getDirectoryMatches;
 
 function getDirectoryListing(dirname) {
     if(directoryListings[dirname]) {
@@ -15,10 +14,6 @@ function getDirectoryListing(dirname) {
     }
 
     return directoryListings[dirname] = fs.readdirSync(dirname);
-}
-
-function getDirectoryMatches(filepath) {
-
 }
 
 function getFileMatches(filepath) {
@@ -32,18 +27,34 @@ function getFileMatches(filepath) {
     var basename = filename.slice(0, extStart);
     var extension = filename.slice(extStart+1);
     var files = getDirectoryListing(dirname);
-    var pattern = new RegExp('^'+basename+'((?:\\.[\\w\\d-]+)*)'+'\\.'+extension+'$');
+    var isIndexAdaptive = filename === 'index.adpt';
     var matches = [];
+    var pattern;
+
+    if(isIndexAdaptive) {
+        pattern = /([\w\d-]+(?:\.[\w\d-]+)*)/;
+    } else {
+        pattern = new RegExp('^'+basename+'((?:\\.[\\w\\d-]+)*)'+'\\.'+extension+'$');
+    }
 
     files.forEach(file => {
         var match = pattern.exec(file);
         if(match) {
-            matches.push({
-                file:path.join(dirname, file),
-                flags:match[1].split('.').slice(1)
-            })
+            var fullpath = path.join(dirname, file);
+            var stat = fs.statSync(fullpath);
+            var flags = match[1].split('.');
+
+            if(isIndexAdaptive) {
+                if(!stat.isDirectory()) return;
+                else fullpath = require.resolve(fullpath);
+            } else {
+                if(!stat.isFile()) return;
+                else flags = flags.slice(1);
+            }
+
+            matches.push({ file:fullpath, flags });
         }
-    })
+    });
 
     matches.sort((a, b) => (
         b.flags.length - a.flags.length
