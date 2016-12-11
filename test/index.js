@@ -23,6 +23,12 @@ it('should handle adaptive directories via require-hook', function() {
     expect(component({ mobile:true })).to.equal('component/mobile');
 });
 
-it('should handle defaults for adaptive directories');
+it('should handle defaults for adaptive directories', function() {
+    var component = require('./component');
+    expect(component({ })).to.equal('component/default');
+});
 
-it('should allow the default for adaptive directories to be configured');
+it('should allow the default for adaptive directories to be configured', function() {
+    var component = require('./component-custom-default');
+    expect(component({})).to.equal('component/desktop');
+});

@@ -3,10 +3,12 @@ var path = require('path');
 var resolve = require('resolve');
 var directoryListings = {};
 var fileMatches = {};
+var configs = {};
 
 exports.resolveFrom = resolveFrom;
 exports.adaptFile = adaptFile;
 exports.getFileMatches = getFileMatches;
+exports.loadAdaptiveConfig = loadAdaptiveConfig;
 
 function getDirectoryListing(dirname) {
     if(directoryListings[dirname]) {
@@ -14,6 +16,17 @@ function getDirectoryListing(dirname) {
     }
 
     return directoryListings[dirname] = fs.readdirSync(dirname);
+}
+
+function loadAdaptiveConfig(filepath) {
+    if(configs[filepath]) {
+        return configs[filepath];
+    }
+
+    var content = fs.readFileSync(filepath, 'utf8');
+    var config = configs[filepath] = JSON.parse(content);
+
+    return config;
 }
 
 function getFileMatches(filepath) {
@@ -29,10 +42,14 @@ function getFileMatches(filepath) {
     var files = getDirectoryListing(dirname);
     var isIndexAdaptive = filename === 'index.adpt';
     var matches = [];
+    var defaultName;
+    var config;
     var pattern;
 
     if(isIndexAdaptive) {
         pattern = /([\w\d-]+(?:\.[\w\d-]+)*)/;
+        config = loadAdaptiveConfig(filepath);
+        defaultName = config && config.default || 'default';
     } else {
         pattern = new RegExp('^'+basename+'((?:\\.[\\w\\d-]+)*)'+'\\.'+extension+'$');
     }
@@ -50,6 +67,10 @@ function getFileMatches(filepath) {
             } else {
                 if(!stat.isFile()) return;
                 else flags = flags.slice(1);
+            }
+
+            if(file === defaultName) {
+                flags = [];
             }
 
             matches.push({ file:fullpath, flags });
