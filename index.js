@@ -42,6 +42,7 @@ function getFileMatches(filepath) {
     var files = getDirectoryListing(dirname);
     var isIndexAdaptive = filename === 'index.adpt';
     var matches = [];
+    var hasDefault = false;
     var defaultName;
     var config;
     var pattern;
@@ -73,9 +74,15 @@ function getFileMatches(filepath) {
                 flags = [];
             }
 
+            hasDefault = hasDefault || !flags.length;
+
             matches.push({ file:fullpath, flags });
         }
     });
+
+    if(!hasDefault) {
+        throw new Error('No default found for '+filepath);
+    }
 
     matches.sort((a, b) => (
         b.flags.length - a.flags.length

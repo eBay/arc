@@ -32,3 +32,10 @@ it('should allow the default for adaptive directories to be configured', functio
     var component = require('./component-custom-default');
     expect(component({})).to.equal('component/desktop');
 });
+
+it('should throw if there is no default for adaptive directories', function() {
+    expect(function() {
+        var component = require('./component-no-default');
+        component({ mobile:true });
+    }).to.throw();
+});
