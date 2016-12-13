@@ -7,8 +7,20 @@ var configs = {};
 
 exports.resolveFrom = resolveFrom;
 exports.adaptFile = adaptFile;
-exports.getFileMatches = getFileMatches;
 exports.loadAdaptiveConfig = loadAdaptiveConfig;
+
+function getIndexedFlags(flags) {
+    if(!Array.isArray(flags)) return flags; //assume indexed flagset
+    if(flags.indexedFlags) return flags.indexedFlags;
+
+    var indexedFlags = {};
+    for(var i = 0; i < flags.length; i++) {
+        indexedFlags[flags[i]] = true;
+    }
+
+    Object.defineProperty(flags, 'indexedFlags', { value:indexedFlags });
+    return indexedFlags;
+}
 
 function getDirectoryListing(dirname) {
     if(directoryListings[dirname]) {
@@ -92,10 +104,11 @@ function getFileMatches(filepath) {
 }
 
 function adaptFile(filepath, flags) {
+    var indexedFlags = getIndexedFlags(flags);
     var matches = getFileMatches(filepath);
 
     return matches.find(match => {
-        return match.flags.every(flag => flags[flag]);
+        return match.flags.every(flag => indexedFlags[flag]);
     }).file;
 }
 
@@ -108,9 +121,9 @@ function resolveFrom(requestingFile, targetFile, options) {
         extensions: extensions || ['.js']
     });
 
-    if(path.basename(resolvedFile))
+    if(getFileMatches(resolvedFile).some(match => match.file === requestingFile)) {
+        return resolvedFile;
+    }
 
-    var adaptedFile = adaptFile(resolvedFile, flags);
-
-    return adaptedFile === requestingFile ? resolvedFile : adaptedFile;
+    return adaptFile(resolvedFile, flags);
 }

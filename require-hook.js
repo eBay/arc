@@ -1,24 +1,20 @@
 var fs = require('fs');
 var path = require('path');
 var resolve = require('resolve');
-var getFileMatches = require('./').getFileMatches;
+var adaptFile = require('./').adaptFile;
 var loadAdaptiveConfig = require('./').loadAdaptiveConfig;
 
 require.extensions['.adpt'] = function(module, filepath) {
     var config = loadAdaptiveConfig(filepath);
-    var loaderPath = resolve.sync(config.loader, { basedir:path.dirname(filepath) });
-    var loader = require(loaderPath);
+    var proxyPath = resolve.sync(config.proxy, { basedir:path.dirname(filepath) });
+    var proxy = require(proxyPath);
 
     config.filepath = filepath;
     config.module = module;
 
     function requireAdapted(flags) {
-        var matches = getFileMatches(filepath);
-
-        return require(matches.find(match => {
-            return match.flags.every(flag => flags[flag]);
-        }).file);
+        return require(adaptFile(filepath, flags));
     }
 
-    module.exports = loader(requireAdapted, config);
+    module.exports = proxy(requireAdapted, config);
 };

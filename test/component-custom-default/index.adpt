@@ -1,4 +1,4 @@
 {
-    "loader": "../simple-loader",
+    "proxy": "../simple-proxy",
     "default": "desktop"
 }
