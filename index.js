@@ -52,7 +52,7 @@ function getFileMatches(filepath) {
     var basename = filename.slice(0, extStart);
     var extension = filename.slice(extStart + 1);
     var files = getDirectoryListing(dirname);
-    var isIndexAdaptive = filename === 'index.adpt';
+    var isIndexAdaptive = filename === 'index.adaptive';
     var matches = [];
     var hasDefault = false;
     var defaultName;
@@ -114,7 +114,7 @@ function adaptFile(filepath, flags) {
 
 function resolveFrom(requestingFile, targetFile, options) {
     var flags = options.flags;
-    var extensions = (options.extensions || []).concat('.adpt');
+    var extensions = (options.extensions || []).concat('.adaptive');
 
     var resolvedFile = resolve.sync(targetFile, {
         basedir: path.dirname(requestingFile),
