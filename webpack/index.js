@@ -14,7 +14,7 @@ module.exports.getOutputPath = getOutputPath;
  * @return {String}
  */
 function getOutputPath(dirname, outputFolder, flags) {
-    return path.join(dirname, outputFolder, (flags.join('.') || 'default'));
+    return path.join(dirname, outputFolder, (adaptiveImports.joinFlags(flags) || 'default'));
 }
 
 /**

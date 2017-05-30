@@ -5,9 +5,10 @@ var directoryListings = {};
 var fileMatches = {};
 var configs = {};
 
-module.exports.resolveFrom = resolveFrom;
 module.exports.adaptFile = adaptFile;
+module.exports.joinFlags = joinFlags;
 module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
+module.exports.resolveFrom = resolveFrom;
 
 function getIndexedFlags(flags) {
     if (!Array.isArray(flags)) return flags; //assume indexed flagset
@@ -126,4 +127,10 @@ function resolveFrom(requestingFile, targetFile, options) {
     }
 
     return adaptFile(resolvedFile, flags);
+}
+
+// Alphabetize flags before joining them
+function joinFlags(flags) {
+    flags.sort();
+    return flags.join('.');
 }
