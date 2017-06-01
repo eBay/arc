@@ -77,7 +77,7 @@ function getFileMatches(filepath) {
 
             if (isIndexAdaptive) {
                 if (!stat.isDirectory()) return;
-                fullpath = require.resolve(fullpath);
+                fullpath = path.resolve(fullpath);
             } else {
                 if (!stat.isFile()) return;
                 flags = flags.slice(1);
