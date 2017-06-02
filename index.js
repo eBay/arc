@@ -5,25 +5,26 @@ var directoryListings = {};
 var fileMatches = {};
 var configs = {};
 
-exports.resolveFrom = resolveFrom;
-exports.adaptFile = adaptFile;
-exports.loadAdaptiveConfig = loadAdaptiveConfig;
+module.exports.adaptFile = adaptFile;
+module.exports.joinFlags = joinFlags;
+module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
+module.exports.resolveFrom = resolveFrom;
 
 function getIndexedFlags(flags) {
-    if(!Array.isArray(flags)) return flags; //assume indexed flagset
-    if(flags.indexedFlags) return flags.indexedFlags;
+    if (!Array.isArray(flags)) return flags; //assume indexed flagset
+    if (flags.indexedFlags) return flags.indexedFlags;
 
     var indexedFlags = {};
-    for(var i = 0; i < flags.length; i++) {
+    for (var i = 0; i < flags.length; i++) {
         indexedFlags[flags[i]] = true;
     }
 
-    Object.defineProperty(flags, 'indexedFlags', { value:indexedFlags });
+    Object.defineProperty(flags, 'indexedFlags', { value: indexedFlags });
     return indexedFlags;
 }
 
 function getDirectoryListing(dirname) {
-    if(directoryListings[dirname]) {
+    if (directoryListings[dirname]) {
         return directoryListings[dirname];
     }
 
@@ -31,7 +32,7 @@ function getDirectoryListing(dirname) {
 }
 
 function loadAdaptiveConfig(filepath) {
-    if(configs[filepath]) {
+    if (configs[filepath]) {
         return configs[filepath];
     }
 
@@ -42,7 +43,7 @@ function loadAdaptiveConfig(filepath) {
 }
 
 function getFileMatches(filepath) {
-    if(fileMatches[filepath]) {
+    if (fileMatches[filepath]) {
         return fileMatches[filepath];
     }
 
@@ -50,50 +51,50 @@ function getFileMatches(filepath) {
     var filename = path.basename(filepath);
     var extStart = filename.lastIndexOf('.');
     var basename = filename.slice(0, extStart);
-    var extension = filename.slice(extStart+1);
+    var extension = filename.slice(extStart + 1);
     var files = getDirectoryListing(dirname);
-    var isIndexAdaptive = filename === 'index.adpt';
+    var isIndexAdaptive = filename === 'index.adaptive';
     var matches = [];
     var hasDefault = false;
     var defaultName;
     var config;
     var pattern;
 
-    if(isIndexAdaptive) {
+    if (isIndexAdaptive) {
         pattern = /([\w\d-]+(?:\.[\w\d-]+)*)/;
         config = loadAdaptiveConfig(filepath);
         defaultName = config && config.default || 'default';
     } else {
-        pattern = new RegExp('^'+basename+'((?:\\.[\\w\\d-]+)*)'+'\\.'+extension+'$');
+        pattern = new RegExp('^' + basename + '((?:\\.[\\w\\d-]+)*)' + '\\.' + extension + '$');
     }
 
     files.forEach(file => {
         var match = pattern.exec(file);
-        if(match) {
+        if (match) {
             var fullpath = path.join(dirname, file);
             var stat = fs.statSync(fullpath);
             var flags = match[1].split('.');
 
-            if(isIndexAdaptive) {
-                if(!stat.isDirectory()) return;
-                else fullpath = require.resolve(fullpath);
+            if (isIndexAdaptive) {
+                if (!stat.isDirectory()) return;
+                fullpath = path.resolve(fullpath);
             } else {
-                if(!stat.isFile()) return;
-                else flags = flags.slice(1);
+                if (!stat.isFile()) return;
+                flags = flags.slice(1);
             }
 
-            if(file === defaultName) {
+            if (file === defaultName) {
                 flags = [];
             }
 
             hasDefault = hasDefault || !flags.length;
 
-            matches.push({ file:fullpath, flags });
+            matches.push({ file: fullpath, flags });
         }
     });
 
-    if(!hasDefault) {
-        throw new Error('No default found for '+filepath);
+    if (!hasDefault) {
+        throw new Error('No default found for ' + filepath);
     }
 
     matches.sort((a, b) => (
@@ -114,16 +115,22 @@ function adaptFile(filepath, flags) {
 
 function resolveFrom(requestingFile, targetFile, options) {
     var flags = options.flags;
-    var extensions = (options.extensions || []).concat('.adpt');
+    var extensions = (options.extensions || []).concat('.adaptive');
 
     var resolvedFile = resolve.sync(targetFile, {
         basedir: path.dirname(requestingFile),
         extensions: extensions || ['.js']
     });
 
-    if(getFileMatches(resolvedFile).some(match => match.file === requestingFile)) {
+    if (getFileMatches(resolvedFile).some(match => match.file === requestingFile)) {
         return resolvedFile;
     }
 
     return adaptFile(resolvedFile, flags);
+}
+
+// Alphabetize flags before joining them
+function joinFlags(flags) {
+    flags.sort();
+    return flags.join('.');
 }
