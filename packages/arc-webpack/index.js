@@ -1,5 +1,5 @@
 var path = require('path');
-var adaptiveImports = require('../');
+var arcResolver = require('arc-resolver');
 
 module.exports.adaptFiles = adaptFiles;
 module.exports.getOutputPath = getOutputPath;
@@ -14,7 +14,7 @@ module.exports.getOutputPath = getOutputPath;
  * @return {String}
  */
 function getOutputPath(dirname, outputFolder, flags) {
-    return path.join(dirname, outputFolder, (adaptiveImports.joinFlags(flags) || 'default'));
+    return path.join(dirname, outputFolder, (arcResolver.joinFlags(flags) || 'default'));
 }
 
 /**
@@ -29,7 +29,7 @@ function adaptFiles(flags) {
     return {
         apply: (resolver) => {
             resolver.plugin('before-existing-file', (request, callback) => {
-                var adaptedPath = adaptiveImports.adaptResource(request.path, flags);
+                var adaptedPath = arcResolver.adaptResource(request.path, flags);
                 callback(null, Object.assign({}, request, { path: adaptedPath }));
             });
         }
