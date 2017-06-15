@@ -5,7 +5,7 @@ var directoryListings = {};
 var fileMatches = {};
 var configs = {};
 
-module.exports.adaptFile = adaptFile;
+module.exports.adaptResource = adaptResource;
 module.exports.joinFlags = joinFlags;
 module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
 module.exports.resolveFrom = resolveFrom;
@@ -97,20 +97,45 @@ function getFileMatches(filepath) {
         throw new Error('No default found for ' + filepath);
     }
 
-    matches.sort((a, b) => (
-        b.flags.length - a.flags.length
-    ));
+    return fileMatches[filepath] = matches;
+}
+
+// Utility function to get directory matches
+function getDirMatches(filepath) {
+    if (fileMatches[filepath]) {
+        return fileMatches[filepath];
+    }
+
+    var parentDir = path.dirname(filepath);
+    var basename = path.basename(filepath);
+    var contents = getDirectoryListing(parentDir);
+    var matches = [];
+
+    contents.forEach(dir => {
+        var fullpath = path.join(parentDir, dir);
+        // We only want to operate on the directories
+        var stat = fs.statSync(fullpath);
+        if (!stat.isDirectory()) return;
+
+        var flags = dir.split('.');
+
+        matches.push({ file: fullpath, flags });
+    });
 
     return fileMatches[filepath] = matches;
 }
 
-function adaptFile(filepath, flags) {
-    var indexedFlags = getIndexedFlags(flags);
-    var matches = getFileMatches(filepath);
+function adaptResource(filepath, flags) {
+    var stat = fs.statSync(filepath);
+    var matches = [];
 
-    return matches.find(match => {
-        return match.flags.every(flag => indexedFlags[flag]);
-    }).file;
+    if (stat.isFile()) {
+        matches = getFileMatches(filepath);
+    } else if (stat.isDirectory()) {
+        matches = getDirMatches(filepath);
+    }
+
+    return getBestMatch(filepath, matches, flags);
 }
 
 function resolveFrom(requestingFile, targetFile, options) {
@@ -126,11 +151,32 @@ function resolveFrom(requestingFile, targetFile, options) {
         return resolvedFile;
     }
 
-    return adaptFile(resolvedFile, flags);
+    return adaptResource(resolvedFile, flags);
 }
 
 // Alphabetize flags before joining them
 function joinFlags(flags) {
     flags.sort();
     return flags.join('.');
+}
+
+// Return best matching filepath 
+function getBestMatch(origFilepath, matches, flags) {
+    var indexedFlags = getIndexedFlags(flags);
+    var bestMatchObj = {};
+    var bestMatchFile = '';
+
+    matches.sort((a, b) => (
+        b.flags.length - a.flags.length
+    ));
+
+    bestMatchObj = matches.find(match => {
+        return match.flags.every(flag => indexedFlags[flag]);
+    });
+
+    if (bestMatchObj) {
+        return bestMatchObj.file;
+    } else {
+        return origFilepath;
+    }
 }

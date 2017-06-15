@@ -29,7 +29,7 @@ function adaptFiles(flags) {
     return {
         apply: (resolver) => {
             resolver.plugin('before-existing-file', (request, callback) => {
-                var adaptedPath = adaptiveImports.adaptFile(request.path, flags);
+                var adaptedPath = adaptiveImports.adaptResource(request.path, flags);
                 callback(null, Object.assign({}, request, { path: adaptedPath }));
             });
         }

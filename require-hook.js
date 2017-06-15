@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var resolve = require('resolve');
-var adaptFile = require('./').adaptFile;
+var adaptResource = require('./').adaptResource;
 var loadAdaptiveConfig = require('./').loadAdaptiveConfig;
 
 require.extensions['.adaptive'] = function(module, filepath) {
@@ -13,7 +13,7 @@ require.extensions['.adaptive'] = function(module, filepath) {
     config.module = module;
 
     function requireAdapted(flags) {
-        return require(adaptFile(filepath, flags));
+        return require(adaptResource(filepath, flags));
     }
 
     module.exports = proxy(requireAdapted, config);
