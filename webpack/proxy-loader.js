@@ -27,8 +27,6 @@ module.exports = function(source) {
             module.exports = proxy(requireAdapted, config);
         `;
 
-        console.log(code);
-
         return code;
     } else {
         throw new Error('The proxy loader should only be used for server bundles (target=node).');
