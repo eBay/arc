@@ -9,6 +9,8 @@ module.exports.adaptResource = adaptResource;
 module.exports.joinFlags = joinFlags;
 module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
 module.exports.resolveFrom = resolveFrom;
+module.exports.getFileMatches = getFileMatches;
+module.exports.getBestMatch = getBestMatch;
 
 function getIndexedFlags(flags) {
     if (!Array.isArray(flags)) return flags; //assume indexed flagset
@@ -42,7 +44,7 @@ function loadAdaptiveConfig(filepath) {
     return config;
 }
 
-function getFileMatches(filepath) {
+function getFileMatches(filepath, extensions) {
     if (fileMatches[filepath]) {
         return fileMatches[filepath];
     }
@@ -77,7 +79,10 @@ function getFileMatches(filepath) {
 
             if (isIndexAdaptive) {
                 if (!stat.isDirectory()) return;
-                fullpath = path.resolve(fullpath);
+                fullpath = resolve.sync(fullpath, {
+                    basedir: path.dirname(fullpath),
+                    extensions: extensions || ['.js']
+                });
             } else {
                 if (!stat.isFile()) return;
                 flags = flags.slice(1);
@@ -119,6 +124,10 @@ function getDirMatches(filepath) {
 
         var flags = dir.split('.');
 
+        if (dir === basename) {
+            flags = [];
+        }
+
         matches.push({ file: fullpath, flags });
     });
 
@@ -135,7 +144,7 @@ function adaptResource(filepath, flags) {
         matches = getDirMatches(filepath);
     }
 
-    return getBestMatch(filepath, matches, flags);
+    return getBestMatch(matches, flags).file;
 }
 
 function resolveFrom(requestingFile, targetFile, options) {
@@ -160,8 +169,8 @@ function joinFlags(flags) {
     return flags.join('.');
 }
 
-// Return best matching filepath 
-function getBestMatch(origFilepath, matches, flags) {
+// Return best matching filepath
+function getBestMatch(matches, flags) {
     var indexedFlags = getIndexedFlags(flags);
     var bestMatchObj = {};
     var bestMatchFile = '';
@@ -174,9 +183,5 @@ function getBestMatch(origFilepath, matches, flags) {
         return match.flags.every(flag => indexedFlags[flag]);
     });
 
-    if (bestMatchObj) {
-        return bestMatchObj.file;
-    } else {
-        return origFilepath;
-    }
+    return bestMatchObj;
 }
