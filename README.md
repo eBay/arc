@@ -1,6 +1,6 @@
-# adaptive-imports
+# ARC
 ```
-npm install adpt
+npm install arc-resolver
 ```
 
 This module allows you to easily pull in different files/resources for different environments using a simple file-based naming convention and a set of flags.

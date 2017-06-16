@@ -18,7 +18,7 @@ function getOutputPath(dirname, outputFolder, flags) {
 }
 
 /**
- * Hooks into webpack resolve step to process every path through adaptive imports logic
+ * Hooks into webpack resolve step to process every path through arc imports logic
  * Returns an object with `apply` property following webpack plugin paradigm
  * 
  * @param {Array} flags - combination of flags (e.g device type, screen size, brand) to be processed
