@@ -1,6 +1,5 @@
 {
-  "name": "arc",
-  "private": true,
+  "name": "arc-react",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +9,8 @@
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "prop-types": "^15.5.10",
+    "react": "^15.6.1",
     "resolve": "^1.1.7"
   },
   "devDependencies": {
