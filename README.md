@@ -2,6 +2,7 @@
 ```
 npm install arc-resolver
 ```
+Since ARC is a monorepo, view `packages/` to see other module options.
 
 This module allows you to easily pull in different files/resources for different environments using a simple file-based naming convention and a set of flags.
 
