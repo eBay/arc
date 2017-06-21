@@ -1,8 +1,10 @@
 ## Adaptive Resources & Components (ARC) plugin for Webpack
 
-`arc-webpack` can be used for a client Webpack config, a server Webpack config, or both at the same time!
+`arc-webpack` can be used for a client Webpack config, a server Webpack config, or both at the same time! 
 
 ### Client bundling
+
+A Webpack config file can export an array of config objects, so we are able to create multiple client bundles at once.
 
 1. You will need to have a list of the possible flag combinations your web app is catering to in order to generate the client-side bundles ahead of time:
 
@@ -18,10 +20,14 @@ const flagset = [
 2. Use `map` to create a client bundle for each combination, passing your client config this combination of flags:
 ```
 flagset.map(flags => {
-    configArr.push(clientConfig(...flags));
+    configArr.push(clientConfig(flags));
 });
 
 module.exports = configArr;
+```
+
+```
+const clientConfig = (flags) => ({
 ```
 3. Add the ARC plugin at the resolve step. Make sure you also add the `.arc` extension so any template split component will properly find the correct template path for your bundle:
 ```
