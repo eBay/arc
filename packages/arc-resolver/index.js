@@ -7,7 +7,7 @@ var configs = {};
 
 module.exports.adaptResource = adaptResource;
 module.exports.joinFlags = joinFlags;
-module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
+module.exports.loadArcConfig = loadArcConfig;
 module.exports.resolveFrom = resolveFrom;
 module.exports.getFileMatches = getFileMatches;
 module.exports.getBestMatch = getBestMatch;
@@ -33,7 +33,7 @@ function getDirectoryListing(dirname) {
     return directoryListings[dirname] = fs.readdirSync(dirname);
 }
 
-function loadAdaptiveConfig(filepath) {
+function loadArcConfig(filepath) {
     if (configs[filepath]) {
         return configs[filepath];
     }
@@ -64,7 +64,7 @@ function getFileMatches(filepath, extensions) {
 
     if (isIndexAdaptive) {
         pattern = /([\w\d-]+(?:\.[\w\d-]+)*)/;
-        config = loadAdaptiveConfig(filepath);
+        config = loadArcConfig(filepath);
         defaultName = config && config.default || 'default';
     } else {
         pattern = new RegExp('^' + basename + '((?:\\.[\\w\\d-]+)*)' + '\\.' + extension + '$');
