@@ -12,9 +12,9 @@ require.extensions['.arc'] = function(module, filepath) {
     config.filepath = filepath;
     config.module = module;
 
-    function requireArc(flags) {
+    function requireArcComponent(flags) {
         return require(adaptResource(filepath, flags));
     }
 
-    module.exports = proxy(requireArc, config);
+    module.exports = proxy(requireArcComponent, config);
 };
