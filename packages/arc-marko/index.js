@@ -6,7 +6,11 @@ module.exports = function(requireArcComponent, config) {
 		createOut,
         renderer: function(input, out) {
             var flags = out.global.flags || {};
-            var component = requireArcComponent(flags);
+            // Adding .marko extension for Marko4 convention of template `index.marko` as entry file
+            var options = {
+                extensions: ['.js', '.marko']
+            };
+            var component = requireArcComponent(flags, options);
             return component.renderer(input, out);
         },
         getDependencies: function(out) {

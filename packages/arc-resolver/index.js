@@ -134,12 +134,13 @@ function getDirMatches(filepath) {
     return fileMatches[filepath] = matches;
 }
 
-function adaptResource(filepath, flags) {
+function adaptResource(filepath, flags, options) {
+    if (!options) options = {};
     var stat = fs.statSync(filepath);
     var matches = [];
 
     if (stat.isFile()) {
-        matches = getFileMatches(filepath);
+        matches = getFileMatches(filepath, options.extensions);
     } else if (stat.isDirectory()) {
         matches = getDirMatches(filepath);
     }
