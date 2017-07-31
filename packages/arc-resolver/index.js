@@ -7,7 +7,7 @@ var configs = {};
 
 module.exports.adaptResource = adaptResource;
 module.exports.joinFlags = joinFlags;
-module.exports.loadArcConfig = loadArcConfig;
+module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
 module.exports.resolveFrom = resolveFrom;
 module.exports.getFileMatches = getFileMatches;
 module.exports.getBestMatch = getBestMatch;
@@ -33,7 +33,7 @@ function getDirectoryListing(dirname) {
     return directoryListings[dirname] = fs.readdirSync(dirname);
 }
 
-function loadArcConfig(filepath) {
+function loadAdaptiveConfig(filepath) {
     if (configs[filepath]) {
         return configs[filepath];
     }
@@ -64,7 +64,7 @@ function getFileMatches(filepath, extensions) {
 
     if (isIndexAdaptive) {
         pattern = /([\w\d-]+(?:\.[\w\d-]+)*)/;
-        config = loadArcConfig(filepath);
+        config = loadAdaptiveConfig(filepath);
         defaultName = config && config.default || 'default';
     } else {
         pattern = new RegExp('^' + basename + '((?:\\.[\\w\\d-]+)*)' + '\\.' + extension + '$');
@@ -76,9 +76,13 @@ function getFileMatches(filepath, extensions) {
             var fullpath = path.join(dirname, file);
             var stat = fs.statSync(fullpath);
             var flags = match[1].split('.');
-            
+
             if (isIndexAdaptive) {
                 if (!stat.isDirectory()) return;
+                fullpath = resolve.sync(fullpath, {
+                    basedir: path.dirname(fullpath),
+                    extensions: extensions || ['.js']
+                });
             } else {
                 if (!stat.isFile()) return;
                 flags = flags.slice(1);
