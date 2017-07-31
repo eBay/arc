@@ -7,7 +7,8 @@ module.exports = function(requireArcComponent, config) {
         renderer: function(input, out) {
             var flags = out.global.flags || {};
             var component = requireArcComponent(flags);
-            return component.renderer(input, out);
+            var renderer = component.renderer || component._;
+            return renderer.call(component, input, out);
         },
         getDependencies: function(out) {
             var flags = out.global.flags || {};

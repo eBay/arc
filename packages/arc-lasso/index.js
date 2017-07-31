@@ -6,7 +6,12 @@ module.exports = function(lasso, config) {
         postResolve: function(resolvedInfo, lassoContext) {
             var original = resolvedInfo.path;
             if (/\.arc$/.test(original)) {
-                resolvedInfo.path = arcResolver.adaptResource(resolvedInfo.path, lassoContext.flags.flagMap);
+                try {
+                    resolvedInfo.path = require.resolve(arcResolver.adaptResource(resolvedInfo.path, lassoContext.flags.flagMap));
+                } catch(e) {
+                    console.error(e);
+                    throw e;
+                }
             }
             if (original != resolvedInfo.path) {
                 delete resolvedInfo.meta;

@@ -76,13 +76,9 @@ function getFileMatches(filepath, extensions) {
             var fullpath = path.join(dirname, file);
             var stat = fs.statSync(fullpath);
             var flags = match[1].split('.');
-
+            
             if (isIndexAdaptive) {
                 if (!stat.isDirectory()) return;
-                fullpath = resolve.sync(fullpath, {
-                    basedir: path.dirname(fullpath),
-                    extensions: extensions || ['.js']
-                });
             } else {
                 if (!stat.isFile()) return;
                 flags = flags.slice(1);
