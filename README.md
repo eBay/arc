@@ -28,3 +28,8 @@ You may request `style.css`, but if you have the `mobile` flag set, you will get
 ### Demo apps using ARC:
 
 [React/Webpack](https://github.com/fierysunset/arc-react-webpack-demo)
+
+### Connie & Michael's talk on ARC @ Fluent O'Reilly Conf 2017:
+
+[Session abstract](https://conferences.oreilly.com/fluent/fl-ca/public/schedule/detail/58976)    
+[Video of talk](https://vimeo.com/229162833/c2727d5436)
