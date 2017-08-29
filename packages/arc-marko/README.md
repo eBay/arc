@@ -14,8 +14,8 @@ Examples include:
 "arc-lasso": "^1.0.0",
 "arc-marko": "^1.0.1",
 "arc-resolver": "^1.0.1",
-"lasso": "3.0.0-beta.0"
-"marko": "^4",
+"lasso": "3.0.0-beta.0",
+"marko": "^4"
 ```
 
 2. For lasso plugins, add 
