@@ -8,7 +8,7 @@ Examples include:
 
 ### Steps to set up ARC in your Marko project:
 
-1.  In package.json file, add below dependencies
+1.  In your package.json file, add the dependencies below:
 
 ```
 "arc-lasso": "^1.0.0",
@@ -23,21 +23,21 @@ Examples include:
 "arc-lasso"
 ```
 
-3. In src/config.js, add 
+3. In `src/config.js`, add 
 ```
 require('arc-resolver/proxy-hook');
 ```
 
-4. In request handler index.js, add
+4. In your request handler `index.js`, add
 ```
     // res.locals is made available as out.global by marko/express.js
-    // isMobile is a boolean value indicate mobile device or not
+    // isMobile is a boolean value indicating if the client is using a mobile device or not
     res.locals.flags = {
         mobile: isMobile,
         desktop: !isMobile
     };
 
-    // desktopTemplate mobileTemplate are top level page template
+    // desktopTemplate, mobileTemplate are the top level page templates
     if (isMobile) {
         res.marko(mobileTemplate, viewModel);
     } else {
@@ -46,34 +46,38 @@ require('arc-resolver/proxy-hook');
 
 ```
 
-5. In 'projectroot'/index.js, add
+5. In `@projectroot@/index.js`, add
 ```
 require('marko/express');
 ```
 
-6. Build an arc module struture 
+6. Build an ARC module struture where necessary 
 ```
-├── common.js 
+├── common.js
+├── index.arc
 ├── desktop
 │   ├── component.js
 │   ├── index.marko
 │   └── styles
 │       └── style.less
-├── index.arc
 └── mobile
     ├── component.js
     ├── index.marko
     └── styles
         └── style.less
 ```
+- `common.js` contains any Javascript code shared across device types and can be extended in `component.js`
+- `index.arc` contains the proxy and fallback as you'll see in #7 below
+- In the example above, each device has its own javascript (`component.js`), markup (`index.marko`), and styles (`style.less`)
 
-7. In index.arc, write
+7. In `index.arc`, write
 ```
 {
-   "proxy":"arc-marko",
-   "default":"desktop"
+   "proxy": "arc-marko",
+   "default": "desktop"
 }
 ```
-
+- `proxy` - this is how your app will know how to do routing for adaptive components
+- `default` - the fallback flag to use when `arc-marko` gets no flags
 
 Start the server and try it!
