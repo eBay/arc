@@ -23,7 +23,7 @@ Examples include:
 "arc-lasso"
 ```
 
-3. In top level page templates for different device, add
+3. In the top level page templates for different devices, add
 ```
 <lasso-page package-path="./browser.json" flags=['desktop']/>
 ```
