@@ -8,7 +8,7 @@ Examples include:
 
 ### Steps to set up ARC in your Marko project:
 
-1.  In your package.json file, add the dependencies below:
+1.  In your `package.json` file, add the dependencies below:
 
 ```
 "arc-lasso": "^1.0.0",
@@ -23,12 +23,22 @@ Examples include:
 "arc-lasso"
 ```
 
-3. In `src/config.js`, add 
+3. In top level page templates for different device, add
+```
+<lasso-page package-path="./browser.json" flags=['desktop']/>
+```
+or
+```
+<lasso-page package-path="./browser.json" flags=['mobile']/>
+```
+
+
+4. In `src/config.js`, add 
 ```
 require('arc-resolver/proxy-hook');
 ```
 
-4. In your request handler `index.js`, add
+5. In your request handler `index.js`, add
 ```
     // res.locals is made available as out.global by marko/express.js
     // isMobile is a boolean value indicating if the client is using a mobile device or not
@@ -46,12 +56,12 @@ require('arc-resolver/proxy-hook');
 
 ```
 
-5. In `@projectroot@/index.js`, add
+6. In `@projectroot@/index.js`, add
 ```
 require('marko/express');
 ```
 
-6. Build an ARC module struture where necessary 
+7. Build an ARC module struture where necessary 
 ```
 ├── common.js
 ├── index.arc
@@ -70,7 +80,7 @@ require('marko/express');
 - `index.arc` contains the proxy and fallback as you'll see in #7 below
 - In the example above, each device has its own javascript (`component.js`), markup (`index.marko`), and styles (`style.less`)
 
-7. In `index.arc`, write
+8. In `index.arc`, write
 ```
 {
    "proxy": "arc-marko",
