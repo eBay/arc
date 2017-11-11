@@ -1,7 +1,6 @@
-// arc-server/install
-require('../install');
+require('arc-server/install');
 
-let arc = require('../');
+let arc = require('arc-server');
 let express = require('express');
 let template = require('./template');
 let app = express();

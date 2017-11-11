@@ -1,5 +1,5 @@
 {
-  "name": "arc-server-example",
+  "name": "example-arc-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "license": "ISC",
   "private": true,
   "dependencies": {
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "arc-server": "*"
   }
 }
