@@ -1,20 +1,22 @@
 {
-  "name": "arc-resolver",
+  "name": "arc-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha test.js"
+    "test": "nyc mocha"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "cachedfs": "^0.3.3"
+    "arc-fs": "^1.0.0",
+    "arc-resolver": "^1.0.0",
+    "cls-hooked": "^4.2.2"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "debug": "^3.1.0",
     "lerna": "^2.0.0-rc.5",
-    "memory-fs": "^0.4.1",
     "mocha": "^3.2.0",
     "nyc": "^11.3.0"
   }

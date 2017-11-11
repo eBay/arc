@@ -1,187 +1,155 @@
-var fs = require('fs');
-var path = require('path');
-var resolve = require('resolve');
-var directoryListings = {};
-var fileMatches = {};
-var configs = {};
+let path = require('path');
+let util = require('util');
+let CachedFs = require('cachedfs');
 
-module.exports.adaptResource = adaptResource;
-module.exports.joinFlags = joinFlags;
-module.exports.loadAdaptiveConfig = loadAdaptiveConfig;
-module.exports.resolveFrom = resolveFrom;
-module.exports.getFileMatches = getFileMatches;
-module.exports.getBestMatch = getBestMatch;
+module.exports = class Resolver {
+  constructor(fs = require('fs')) {
+    validateFS(fs);
+    this.fs = new CachedFs(fs);
+    this.fs.stat = util.promisify(this.fs.stat);
+    this.fs.readdir = util.promisify(this.fs.readdir);
+    this.matchCache = {};
+  }
+  clearCache() {
+    this.fs.cache.reset();
+    this.matchCache = {};
+  }
+  getMatchesSync(dir, request, path, knownDir) {
+    let fs = this.fs;
+    let resolvedPath = path.join(dir, request);
+    let matches = this.matchCache[resolvedPath];
 
-function getIndexedFlags(flags) {
-    if (!Array.isArray(flags)) return flags; //assume indexed flagset
-    if (flags.indexedFlags) return flags.indexedFlags;
+    if (!matches) {
+      let requestParts = request.split('.');
+      let entries = fs.readdirSync(dir);
+      let firstIndex = 0;
+      let lastIndex = requestParts - 1;
+      let name = requestParts[firstIndex] || '.' + requestParts[++firstIndex];
+      let ext = firstIndex !== lastIndex && requestParts[lastIndex];
 
-    var indexedFlags = {};
-    for (var i = 0; i < flags.length; i++) {
-        indexedFlags[flags[i]] = true;
-    }
+      matches = [];
 
-    Object.defineProperty(flags, 'indexedFlags', { value: indexedFlags });
-    return indexedFlags;
-}
+      entries.forEach(entry => {
+        let entryPath = path.join(dir, entry);
+        let hasName = entry.startsWith(name);
+        let nextChar = entry[name.length];
+        let nextCharIsBoundary = nextChar === '.' || nextChar === undefined;
 
-function getDirectoryListing(dirname) {
-    if (directoryListings[dirname]) {
-        return directoryListings[dirname];
-    }
+        if (!hasName || !nextCharIsBoundary) return;
+        if (knownDir && fs.statSync(entryPath).isFile()) return;
 
-    return directoryListings[dirname] = fs.readdirSync(dirname);
-}
+        let flagString = entry.slice(name.length + 1);
+        let remainingRequest = request.slice(name.length + 1);
 
-function loadAdaptiveConfig(filepath) {
-    if (configs[filepath]) {
-        return configs[filepath];
-    }
+        let flags = flagString ? flagString.split('.') : [];
+        let notFlags = remainingRequest ? remainingRequest.split('.') : [];
+        let notFlagIndexes = notFlags.map(not =>
+          flags.findIndex(flag => flag === not)
+        );
 
-    var content = fs.readFileSync(filepath, 'utf8');
-    var config = configs[filepath] = JSON.parse(content);
-
-    return config;
-}
-
-function getFileMatches(filepath, extensions) {
-    if (fileMatches[filepath]) {
-        return fileMatches[filepath];
-    }
-
-    var dirname = path.dirname(filepath);
-    var filename = path.basename(filepath);
-    var extStart = filename.lastIndexOf('.');
-    var basename = filename.slice(0, extStart);
-    var extension = filename.slice(extStart + 1);
-    var files = getDirectoryListing(dirname);
-    var isIndexAdaptive = filename === 'index.arc';
-    var matches = [];
-    var hasDefault = false;
-    var defaultName;
-    var config;
-    var pattern;
-
-    if (isIndexAdaptive) {
-        pattern = /([\w\d-]+(?:\.[\w\d-]+)*)/;
-        config = loadAdaptiveConfig(filepath);
-        defaultName = config && config.default || 'default';
-    } else {
-        pattern = new RegExp('^' + basename + '((?:\\.[\\w\\d-]+)*)' + '\\.' + extension + '$');
-    }
-
-    files.forEach(file => {
-        var match = pattern.exec(file);
-        if (match) {
-            var fullpath = path.join(dirname, file);
-            var stat = fs.statSync(fullpath);
-            var flags = match[1].split('.');
-
-            if (isIndexAdaptive) {
-                if (!stat.isDirectory()) return;
-                fullpath = resolve.sync(fullpath, {
-                    basedir: path.dirname(fullpath),
-                    extensions: extensions || ['.js']
-                });
-            } else {
-                if (!stat.isFile()) return;
-                flags = flags.slice(1);
-            }
-
-            if (file === defaultName) {
-                flags = [];
-            }
-
-            hasDefault = hasDefault || !flags.length;
-
-            matches.push({ file: fullpath, flags });
+        if (notFlagIndexes.every(i => i >= 0)) {
+          notFlagIndexes.reverse().forEach(i => flags.splice(i, 1));
+          matches.push({ flags, entry, path: entryPath });
         }
-    });
+      });
 
-    if (!hasDefault) {
-        throw new Error('No default found for ' + filepath);
+      if (!matches.length) {
+        throw new Error(resolvedPath + ' does not exist');
+      }
+
+      matches.sort((a, b) => b.flags.length - a.flags.length);
+
+      this.matchCache[resolvedPath] = matches;
     }
 
-    return fileMatches[filepath] = matches;
-}
-
-// Utility function to get directory matches
-function getDirMatches(filepath) {
-    if (fileMatches[filepath]) {
-        return fileMatches[filepath];
+    return matches;
+  }
+  resolveSync(filepath, flags) {
+    if (typeof filepath !== 'string') {
+      throw new TypeError('Filepath must be a string.');
     }
 
-    var parentDir = path.dirname(filepath);
-    var basename = path.basename(filepath);
-    var contents = getDirectoryListing(parentDir);
-    var matches = [];
-
-    contents.forEach(dir => {
-        var fullpath = path.join(parentDir, dir);
-        // We only want to operate on the directories
-        var stat = fs.statSync(fullpath);
-        if (!stat.isDirectory()) return;
-
-        var flags = dir.split('.');
-
-        if (dir === basename) {
-            flags = [];
-        }
-
-        matches.push({ file: fullpath, flags });
-    });
-
-    return fileMatches[filepath] = matches;
-}
-
-function adaptResource(filepath, flags) {
-    var stat = fs.statSync(filepath);
-    var matches = [];
-
-    if (stat.isFile()) {
-        matches = getFileMatches(filepath);
-    } else if (stat.isDirectory()) {
-        matches = getDirMatches(filepath);
+    if (!flags || typeof flags !== 'object') {
+      throw new TypeError('Flags must be an object.');
     }
 
-    return getBestMatch(matches, flags).file;
-}
+    let path = getPathHelper(filepath);
 
-function resolveFrom(requestingFile, targetFile, options) {
-    var flags = options.flags;
-    var extensions = (options.extensions || []).concat('.arc');
+    let locations = path.normalize(filepath).split(path.sep);
+    let currentPath = locations[0] || path.sep;
 
-    var resolvedFile = resolve.sync(targetFile, {
-        basedir: path.dirname(requestingFile),
-        extensions: extensions || ['.js']
-    });
+    for (let i = 1; i < locations.length; i++) {
+      let location = locations[i];
+      let knownDir = i < locations.length - 1;
+      let matches = this.getMatchesSync(currentPath, location, path, knownDir);
+      let match = matches.find(match => match.flags.every(flag => flags[flag]));
 
-    if (getFileMatches(resolvedFile).some(match => match.file === requestingFile)) {
-        return resolvedFile;
+      if (!match) {
+        throw new Error(
+          'No match found for ' + path.join(currentPath, location)
+        );
+      }
+
+      currentPath = match.path;
     }
 
-    return adaptResource(resolvedFile, flags);
+    return currentPath;
+  }
+  isAdaptiveSync(filepath) {
+    if (typeof filepath !== 'string') {
+      throw new TypeError('Filepath must be a string.');
+    }
+
+    let path = getPathHelper(filepath);
+
+    let locations = path.normalize(filepath).split(path.sep);
+    let currentPath = locations[0] || path.sep;
+
+    for (let i = 1; i < locations.length; i++) {
+      let location = locations[i];
+      let knownDir = i < locations.length - 1;
+      let matches = this.getMatchesSync(currentPath, location, path, knownDir);
+
+      if (matches.length > 1) {
+        return true;
+      }
+
+      currentPath = path.join(currentPath, location);
+    }
+
+    return false;
+  }
+};
+
+function getPathHelper(filepath) {
+  if (path.posix.isAbsolute(filepath)) {
+    return path.posix;
+  } else if (path.win32.isAbsolute(filepath)) {
+    return path.win32;
+  } else {
+    throw new Error('Filepath must be a fully resolved filepath. Got: '+ filepath);
+  }
 }
 
-// Alphabetize flags before joining them
-function joinFlags(flags) {
-    flags.sort();
-    return flags.join('.');
-}
+function validateFS(fs) {
+  if (!fs) {
+    throw new Error(
+      'You must pass a filesystem to resolve, or undefined to use the node fs module'
+    );
+  }
 
-// Return best matching filepath
-function getBestMatch(matches, flags) {
-    var indexedFlags = getIndexedFlags(flags);
-    var bestMatchObj = {};
-    var bestMatchFile = '';
+  let missing = [
+    'stat',
+    'statSync',
+    'readdir',
+    'readdirSync',
+  ].filter(method => !fs[method]);
 
-    matches.sort((a, b) => (
-        b.flags.length - a.flags.length
-    ));
-
-    bestMatchObj = matches.find(match => {
-        return match.flags.every(flag => indexedFlags[flag]);
-    });
-
-    return bestMatchObj;
+  if (missing.length) {
+    throw new Error(
+      'The passed filesystem is missing the following methods: ' +
+        missing.join(', ') +
+        '.'
+    );
+  }
 }

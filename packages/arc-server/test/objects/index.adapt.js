@@ -1,0 +1,1 @@
+module.exports = { a: 4, b: 5, c: { hello: 'love', foo: 'boo' } };

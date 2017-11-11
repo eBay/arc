@@ -1,0 +1,14 @@
+{
+  "name": "arc-server-example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Michael Rawlings <ml.rawlings@gmail.com>",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "express": "^4.16.2"
+  }
+}

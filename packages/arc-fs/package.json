@@ -1,5 +1,5 @@
 {
-  "name": "arc-resolver",
+  "name": "arc-fs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,7 +9,7 @@
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "cachedfs": "^0.3.3"
+    "arc-resolver": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

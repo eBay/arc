@@ -1,4 +1,4 @@
 node_modules
 *.DS_Store
 *.history/
-.nyc_output/
+.nyc_output
