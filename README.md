@@ -94,6 +94,35 @@ Then, in your `.html` file:
 <img src="./logo.svg"/>
 ```
 
+### Experimentation
+
+For example, swap out a component based on the user's participation in an experiment:
+
+```
+date-picker/
+   date-picker.component.css
+   date-picker.component.html
+   date-picker.component.ts
+date-picker[date-experiment-a]/
+   date-picker.component.css
+   date-picker.component.html
+   date-picker.component.ts
+```
+
+Then, in your Angular module:
+
+```ts
+import { NgModule } from '@angular/core';
+import { DatePickerComponent } from './date-picker/date-picker.component';
+
+@NgModule({
+  declarations: [
+    DatePickerComponent
+  ]
+})
+export class MyModule { }
+```
+
 ## Supported environments
 
 Please refer to the linked documentation for using `arc` in each environment:
