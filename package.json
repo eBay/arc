@@ -6,16 +6,24 @@
   "main": "index.js",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
-    "test": "lerna run --scope arc-* test"
+    "test": "nyc lerna run --scope arc-* test && nyc report",
+    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "resolve": "^1.1.7"
-  },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "codecov": "^3.0.0",
     "lerna": "^2.5.1",
-    "mocha": "^3.2.0"
+    "nyc": "^11.3.0"
+  },
+  "nyc": {
+    "exclude": [
+      "**/test.js",
+      "**/test/**",
+      "packages/example-*"
+    ],
+    "silent": true,
+    "cache": true,
+    "all": true
   }
 }
