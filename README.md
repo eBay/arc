@@ -1,14 +1,29 @@
 <p align="center">
    <img width="300" src="./logo.png"/>
+
+   <br/>
+
+   <a href="https://www.ebay.com">
+      <img src="https://img.shields.io/badge/ebay-open%20source-01d5c2.svg" alt="ebay open source"/>
+   </a>
+   <a href="https://img.shields.io/github/license/eBay/arc.svg">
+      <img src="https://img.shields.io/github/license/eBay/arc.svg" alt="MIT licensed"/>
+   </a>
+   <a href="https://travis-ci.org/eBay/arc">
+      <img src="https://travis-ci.org/eBay/arc.svg?branch=master" alt="travisci build"/>
+   </a>
+   <a href="https://codecov.io/gh/eBay/arc">
+     <img src="https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg" alt="Codecov" />
+   </a>
+   <a href="https://www.npmjs.com/package/arc-resolver">
+      <img src="https://img.shields.io/npm/v/arc-resolver.svg" alt="npm version"/>
+   </a>
+   <a href="http://npm-stat.com/charts.html?package=arc-resolver">
+      <img src="https://img.shields.io/npm/dm/arc-resolver.svg" alt="downloads"/>
+   </a>
 </p>
 
-[![Build Status](https://travis-ci.org/eBay/arc.svg?branch=master)](https://travis-ci.org/ebay/arc)
-[![codecov](https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg)](https://codecov.io/gh/eBay/arc)
-[![NPM](https://img.shields.io/npm/v/arc-resolver.svg)](https://www.npmjs.com/package/arc-resolver)
-[![Downloads](https://img.shields.io/npm/dm/arc-resolver.svg)](http://npm-stat.com/charts.html?package=arc-resolver)
-[![license](https://img.shields.io/github/license/eBay/arc.svg)](https://github.com/ebay/arc/blob/master/LICENSE)
-
-<br>
+<br/>
 
 `arc` uses “flags” and a file naming convention to generate and serve a bundle that contains only the resources used by the requesting environment. This allows building web applications that serve only the code necessary for multiple device types, locales, brands - _all from a single codebase_.
 
