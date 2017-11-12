@@ -9,7 +9,7 @@
     "test": "lerna run --scope arc-* test"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "resolve": "^1.1.7"
   },

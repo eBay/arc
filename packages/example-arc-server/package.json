@@ -6,7 +6,7 @@
     "start": "node index.js"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "private": true,
   "dependencies": {
     "express": "^4.16.2",

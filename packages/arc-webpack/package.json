@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {},
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "arc-resolver": "^1.0.1",
     "resolve": "^1.1.7"

@@ -7,7 +7,7 @@
     "test": "nyc mocha test.js"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "cachedfs": "^0.3.3"
   },
