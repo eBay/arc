@@ -18,7 +18,7 @@ The flexibility of `arc` enables diverging components only when necessary. It wo
 
 `arc` adapts files based on a filenaming convension:
 
-```
+```webidl
 style.css
 style[mobile].css
 style[mobile+android].css
@@ -44,7 +44,7 @@ If both the `mobile` and `android` flags are set, when bundling the css, `style[
 
 For example, swap out a header component based on the user's device type:
 
-```
+```webidl
 header[mobile].js
 header[desktop].js
 ```
@@ -63,7 +63,7 @@ export default () => (
 
 For example, swap out a content bundle based on the user's locale:
 
-```
+```webidl
 content[de].json
 content[en].json
 content[es].json
@@ -82,7 +82,7 @@ import content from "./content.json";
 
 For example, swap out a logo based on the brand the user is visiting:
 
-```
+```webidl
 logo[ebay].svg
 logo[gumtree].svg
 logo[vivanuncious].svg
@@ -98,12 +98,12 @@ Then, in your `.html` file:
 
 For example, swap out a component based on the user's participation in an experiment:
 
-```
+```webidl
 date-picker/
    date-picker.component.css
    date-picker.component.html
    date-picker.component.ts
-date-picker[date-experiment-a]/
+date-picker[date_experiment_a]/
    date-picker.component.css
    date-picker.component.html
    date-picker.component.ts

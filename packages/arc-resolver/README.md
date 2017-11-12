@@ -2,7 +2,7 @@
 
 `arc` adapts files based on a filenaming convension:
 
-```
+```webidl
 style.css
 style[android].css
 ```
@@ -23,7 +23,7 @@ When bundling the css (using `arc-webpack` or `arc-lasso`), if the `android` fla
 
 Use the plus (`+`) to specify that all of the listed flags need to match:
 
-```
+```webidl
 style[mobile+android].css
 ```
 
@@ -31,7 +31,7 @@ style[mobile+android].css
 
 Use the comma (`,`) to specify that one of the listed flags needs to match:
 
-```
+```webidl
 style[android,ios].css
 ```
 
@@ -41,7 +41,7 @@ The plus (`+`) has higher precedence than the comma (`,`), similar to how `&&` h
 
 For example,
 
-```
+```webidl
 style[mobile+ios,mobile+android].css
 ```
 
@@ -55,7 +55,7 @@ Is logically equivalent to:
 
 To increase the precedence of a group, you can wrap it in `[]`:
 
-```
+```webidl
 style[mobile+[ios,android]].css
 ```
 
@@ -67,7 +67,7 @@ This is logically equivalent to the previous example.
 
 Given the following files:
 
-```
+```webidl
 style.css
 style[mobile,tablet,headset,desktop].css
 style[mobile+[ios,android]].css
