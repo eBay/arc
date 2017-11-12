@@ -23,7 +23,7 @@
    </a>
 </p>
 
-<br/>
+---
 
 `arc` uses “flags” and a file naming convention to generate and serve a bundle that contains only the resources used by the requesting environment. This allows building web applications that serve only the code necessary for multiple device types, locales, brands - _all from a single codebase_.
 
