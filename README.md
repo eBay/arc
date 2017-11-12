@@ -1,10 +1,13 @@
-<center>
-   <img width="300" src="./logo.png"/><br>
-   [![Build Status](https://travis-ci.org/ebay/arc.svg?branch=master)](https://travis-ci.org/ebay/arc)
-   [![Coverage Status](https://coveralls.io/repos/github/ebay/arc/badge.svg?branch=master&cache-bust=5)](https://coveralls.io/github/ebay/arc?branch=master)
-   [![NPM](https://img.shields.io/npm/v/arc-resolver.svg)](https://www.npmjs.com/package/arc-resolver)
-   [![Downloads](https://img.shields.io/npm/dm/arc-resolver.svg)](http://npm-stat.com/charts.html?package=arc-resolver)
-</center>
+<p align="center">
+   <img width="300" src="./logo.png"/>
+</p>
+
+[![Build Status](https://travis-ci.org/ebay/arc.svg?branch=master)](https://travis-ci.org/ebay/arc)
+[![Coverage Status](https://coveralls.io/repos/github/ebay/arc/badge.svg?branch=master)](https://coveralls.io/github/ebay/arc?branch=master)
+[![NPM](https://img.shields.io/npm/v/arc-resolver.svg)](https://www.npmjs.com/package/arc-resolver)
+[![Downloads](https://img.shields.io/npm/dm/arc-resolver.svg)](http://npm-stat.com/charts.html?package=arc-resolver)
+[![license](https://img.shields.io/github/license/ebay/arc.svg)](https://github.com/ebay/arc/blob/master/LICENSE)
+
 <br>
 
 `arc` uses “flags” and a [file naming convention](#file-based-flags) (`file[flags].ext`) to generate and serve a bundle that contains only the resources used by the requesting environment. It hooks into module resolution and is not bound to any specific framework.
