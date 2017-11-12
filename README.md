@@ -2,11 +2,11 @@
    <img width="300" src="./logo.png"/>
 </p>
 
-[![Build Status](https://travis-ci.org/ebay/arc.svg?branch=master)](https://travis-ci.org/ebay/arc)
-[![Coverage Status](https://coveralls.io/repos/github/ebay/arc/badge.svg?branch=master)](https://coveralls.io/github/ebay/arc?branch=master)
+[![Build Status](https://travis-ci.org/eBay/arc.svg?branch=master)](https://travis-ci.org/ebay/arc)
+[![codecov](https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg)](https://codecov.io/gh/eBay/arc)
 [![NPM](https://img.shields.io/npm/v/arc-resolver.svg)](https://www.npmjs.com/package/arc-resolver)
 [![Downloads](https://img.shields.io/npm/dm/arc-resolver.svg)](http://npm-stat.com/charts.html?package=arc-resolver)
-[![license](https://img.shields.io/github/license/ebay/arc.svg)](https://github.com/ebay/arc/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/eBay/arc.svg)](https://github.com/ebay/arc/blob/master/LICENSE)
 
 <br>
 
