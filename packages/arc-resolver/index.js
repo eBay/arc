@@ -1,6 +1,7 @@
 let path = require('path');
 let util = require('util');
 let CachedFs = require('cachedfs');
+let flaggedPathRegex = /\[(.*)\]/;
 
 module.exports = class Resolver {
   constructor(fs = require('fs')) {
@@ -8,58 +9,46 @@ module.exports = class Resolver {
     this.fs = new CachedFs(fs);
     this.fs.stat = util.promisify(this.fs.stat);
     this.fs.readdir = util.promisify(this.fs.readdir);
-    this.matchCache = {};
+    this.dirCache = {};
   }
   clearCache() {
     this.fs.cache.reset();
-    this.matchCache = {};
+    this.dirCache = {};
   }
-  getMatchesSync(dir, request, path, knownDir) {
+  getMatchesSync(dir, request, path) {
     let fs = this.fs;
-    let resolvedPath = path.join(dir, request);
-    let matches = this.matchCache[resolvedPath];
+    let cache = this.dirCache[dir];
 
-    if (!matches) {
-      let requestParts = request.split('.');
+    if (!cache) {
       let entries = fs.readdirSync(dir);
-      let firstIndex = 0;
-      let lastIndex = requestParts - 1;
-      let name = requestParts[firstIndex] || '.' + requestParts[++firstIndex];
-      let ext = firstIndex !== lastIndex && requestParts[lastIndex];
 
-      matches = [];
+      cache = {};
 
-      entries.forEach(entry => {
-        let entryPath = path.join(dir, entry);
-        let hasName = entry.startsWith(name);
-        let nextChar = entry[name.length];
-        let nextCharIsBoundary = nextChar === '.' || nextChar === undefined;
-
-        if (!hasName || !nextCharIsBoundary) return;
-        if (knownDir && fs.statSync(entryPath).isFile()) return;
-
-        let flagString = entry.slice(name.length + 1);
-        let remainingRequest = request.slice(name.length + 1);
-
-        let flags = flagString ? flagString.split('.') : [];
-        let notFlags = remainingRequest ? remainingRequest.split('.') : [];
-        let notFlagIndexes = notFlags.map(not =>
-          flags.findIndex(flag => flag === not)
-        );
-
-        if (notFlagIndexes.every(i => i >= 0)) {
-          notFlagIndexes.reverse().forEach(i => flags.splice(i, 1));
-          matches.push({ flags, entry, path: entryPath });
+      entries.forEach(entryName => {
+        let entryPath = path.join(dir, entryName);
+        let match = flaggedPathRegex.exec(entryName);
+        if (match) {
+          let canonicalName = entryName.replace(match[0], '');
+          let flags = match[1].split('+');
+          let entryCache = (cache[canonicalName] = cache[canonicalName] || []);
+          entryCache.push({ flags, path: entryPath });
+        } else {
+          let entryCache = (cache[entryName] = cache[entryName] || []);
+          entryCache.push({ flags:[], path: entryPath });
         }
       });
 
-      if (!matches.length) {
-        throw new Error(resolvedPath + ' does not exist');
-      }
+      Object.values(cache).forEach(entryCache => {
+        entryCache.sort((a, b) => b.flags.length - a.flags.length);
+      });
 
-      matches.sort((a, b) => b.flags.length - a.flags.length);
+      this.dirCache[dir] = cache;
+    }
 
-      this.matchCache[resolvedPath] = matches;
+    let matches = cache[request];
+
+    if (!matches) {
+      throw new Error(path.resolve(dir, request) + ' does not exist');
     }
 
     return matches;
@@ -80,17 +69,21 @@ module.exports = class Resolver {
 
     for (let i = 1; i < locations.length; i++) {
       let location = locations[i];
-      let knownDir = i < locations.length - 1;
-      let matches = this.getMatchesSync(currentPath, location, path, knownDir);
-      let match = matches.find(match => match.flags.every(flag => flags[flag]));
 
-      if (!match) {
-        throw new Error(
-          'No match found for ' + path.join(currentPath, location)
-        );
+      if (!flaggedPathRegex.test(location)) {
+        let matches = this.getMatchesSync(currentPath, location, path);
+        let match = matches.find(match => match.flags.every(flag => flags[flag]));
+
+        if (!match) {
+          throw new Error(
+            'No match found for ' + path.join(currentPath, location)
+          );
+        }
+
+        currentPath = match.path;
+      } else {
+        currentPath = path.join(currentPath, location);
       }
-
-      currentPath = match.path;
     }
 
     return currentPath;
@@ -107,11 +100,13 @@ module.exports = class Resolver {
 
     for (let i = 1; i < locations.length; i++) {
       let location = locations[i];
-      let knownDir = i < locations.length - 1;
-      let matches = this.getMatchesSync(currentPath, location, path, knownDir);
 
-      if (matches.length > 1) {
-        return true;
+      if (!flaggedPathRegex.test(location)) {
+        let matches = this.getMatchesSync(currentPath, location, path);
+
+        if (matches.length > 1) {
+          return true;
+        }
       }
 
       currentPath = path.join(currentPath, location);
@@ -127,7 +122,9 @@ function getPathHelper(filepath) {
   } else if (path.win32.isAbsolute(filepath)) {
     return path.win32;
   } else {
-    throw new Error('Filepath must be a fully resolved filepath. Got: '+ filepath);
+    throw new Error(
+      'Filepath must be a fully resolved filepath. Got: ' + filepath
+    );
   }
 }
 
@@ -138,12 +135,9 @@ function validateFS(fs) {
     );
   }
 
-  let missing = [
-    'stat',
-    'statSync',
-    'readdir',
-    'readdirSync',
-  ].filter(method => !fs[method]);
+  let missing = ['stat', 'statSync', 'readdir', 'readdirSync'].filter(
+    method => !fs[method]
+  );
 
   if (missing.length) {
     throw new Error(

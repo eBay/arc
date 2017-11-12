@@ -30,10 +30,10 @@ arc.beginContext(() => {
    getFileName() === '/path/to/helpers.js';
 
    // set a flag
-   arc.setFlags(['ios']);
+   arc.setFlags(['flagged']);
 
    // with flag
-   helpers.getFileName() === '/path/to/helpers.ios.js'
+   helpers.getFileName() === '/path/to/helpers[flagged].js'
 
    // still the function prior to setting the new flag
    getFileName() === '/path/to/helpers.js';
