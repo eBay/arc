@@ -10,11 +10,33 @@
 
 <br>
 
-`arc` uses “flags” and a [file naming convention](#file-based-flags) (`file[flags].ext`) to generate and serve a bundle that contains only the resources used by the requesting environment. It hooks into module resolution and is not bound to any specific framework.
+`arc` uses “flags” and a file naming convention to generate and serve a bundle that contains only the resources used by the requesting environment. This allows building web applications that serve only the code necessary for multiple device types, locales, brands - _all from a single codebase_.
 
-`arc` allows us to build web applications that serve only the code necessary for multiple device types, locales, brands - all from a single codebase.
+The flexibility of `arc` enables diverging components only when necessary. It works for both client + server and is not bound to any specific framework.
 
-The flexibility of `arc` enables us to only diverge components when necessary, and works for both client and server rendering.
+## How it works
+
+`arc` adapts files based on a filenaming convension:
+
+```
+style.css
+style[mobile].css
+style[mobile+android].css
+```
+
+However, you write your application as though the flagged version of files did not exist:
+
+```css
+@import url('./style.css');
+```
+
+If both the `mobile` and `android` flags are set, when bundling the css, `style[mobile+android].css` will replace `style.css` in the output bundle. If only the `mobile` flag is set, `style[mobile].css` will be used.
+
+### More on flags
+
+- Read how to set flags in the documentation for each [supported environment](#supported-environments).
+
+- Read more about using [flags in filenames](./packages/arc-resolver).
 
 ## Use cases
 
@@ -80,43 +102,17 @@ Please refer to the linked documentation for using `arc` in each environment:
 - Webpack 4+ ([`arc-webpack`](./packages/arc-webpack))
 - Lasso 3+ ([`arc-lasso`](./packages/arc-lasso))
 
-## File-based flags
-
-`arc` adapts files based on a filenaming convension:
-
-```
-style.css
-style[mobile].css
-style[mobile+android].css
-```
-
-However, you write your application as though the flagged version of files did not exist:
-
-```css
-@import url('./style.css');
-```
-
-If both the `mobile` and `android` flags are set, when bundling the css, `style[mobile+android].css` will replace `style.css` in the output bundle.
-
-If only the `mobile` flag is set, when bundling the css, `style[mobile].css` will replace `style.css` in the output bundle.
-
-### More on flags
-
-- Read how to set flags in the documentation for each [supported environment](#supported-environments).
-
-- Read more about using [flags in filenames](./packages/arc-resolver).
-
 ## Additional resources
 
 ### Connie & Michael on `arc 1.0` @ Fluent O'Reilly Conf 2017:
 
 - [Session abstract](https://conferences.oreilly.com/fluent/fl-ca/public/schedule/detail/58976)    
-- [Video of talk](https://vimeo.com/229162833/c2727d5436)
+- [Recorded video](https://vimeo.com/229162833/c2727d5436)
 
 ### Example apps
 
 - [Simple Server](./packages/example-arc-server)
-- [Isomorphic Marko with Webpack]() TODO
-- [Isomorphic Marko with Lasso]() TODO
-- [Isomorphic React with Webpack]() TODO
-- [Client-only React with Webpack]() TODO
+- [Isomorphic Koa + Marko + Webpack]() TODO
+- [Isomorphic Express + Marko + Lasso]() TODO
+- [Isomorphic Express + React + Webpack]() TODO
+- [Client-only React + Webpack + `arc-static-server`]() TODO
