@@ -20,6 +20,7 @@
     "exclude": [
       "**/test.js",
       "**/test/**",
+      "**/coverage/**",
       "packages/example-*"
     ],
     "silent": true,

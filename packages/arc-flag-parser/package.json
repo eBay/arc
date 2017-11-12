@@ -1,0 +1,22 @@
+{
+  "name": "arc-flag-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc mocha test.js",
+    "generate": "pegjs index.pegjs && babel --plugins minify-dead-code-elimination index.js --out-file=index.js && prettier index.js --write"
+  },
+  "author": "Michael Rawlings <ml.rawlings@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.31",
+    "@babel/core": "^7.0.0-beta.31",
+    "babel-plugin-minify-dead-code-elimination": "^0.2.0",
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0",
+    "nyc": "^11.3.0",
+    "pegjs": "^0.10.0",
+    "prettier": "^1.8.2"
+  }
+}

@@ -9,7 +9,8 @@
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "cachedfs": "^0.3.3"
+    "cachedfs": "^0.3.3",
+    "arc-flag-parser": "*"
   },
   "devDependencies": {
     "chai": "^3.5.0",

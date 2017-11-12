@@ -1,6 +1,7 @@
 let path = require('path');
 let util = require('util');
 let CachedFs = require('cachedfs');
+let parse = require('arc-flag-parser').parse;
 let flaggedPathRegex = /\[(.*)\]/;
 
 module.exports = class Resolver {
@@ -29,12 +30,14 @@ module.exports = class Resolver {
         let match = flaggedPathRegex.exec(entryName);
         if (match) {
           let canonicalName = entryName.replace(match[0], '');
-          let flags = match[1].split('+');
           let entryCache = (cache[canonicalName] = cache[canonicalName] || []);
-          entryCache.push({ flags, path: entryPath });
+          let flagsets = parse(match[1]);
+          flagsets.forEach(flags =>
+            entryCache.push({ flags, path: entryPath })
+          );
         } else {
           let entryCache = (cache[entryName] = cache[entryName] || []);
-          entryCache.push({ flags:[], path: entryPath });
+          entryCache.push({ flags: [], path: entryPath });
         }
       });
 
@@ -72,7 +75,9 @@ module.exports = class Resolver {
 
       if (!flaggedPathRegex.test(location)) {
         let matches = this.getMatchesSync(currentPath, location, path);
-        let match = matches.find(match => match.flags.every(flag => flags[flag]));
+        let match = matches.find(match =>
+          match.flags.every(flag => flags[flag])
+        );
 
         if (!match) {
           throw new Error(
