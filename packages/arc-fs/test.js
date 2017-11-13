@@ -16,8 +16,23 @@ describe('AdaptiveFS', () => {
     expect(afs.resolveSync('/file.js')).to.equal('/file[test].js');
   });
   it('has a method to clear the resolver cache', () => {
-    let afs = new AdaptiveFS({ flags: () => ({ test: true }) });
+    let flags;
+    let mfs = new MemoryFS();
+    let afs = new AdaptiveFS({ fs: mfs, flags: () => flags });
+
+    // add a file and resolve
+    flags = { before: true };
+    mfs.writeFileSync('/file[before].js', 'Test Contents');
+    expect(afs.resolveSync('/file.js')).to.equal('/file[before].js');
+
+    // add a new file, but it can't be found because it's using old cache
+    flags = { after: true };
+    mfs.writeFileSync('/file[after].js', 'Test Contents');
+    expect(() => afs.resolveSync('/file.js')).to.throw;
+
+    // clear the cache, now the new file can be found
     afs.clearCache();
+    expect(afs.resolveSync('/file.js')).to.equal('/file[after].js');
   });
   it('fallsback to the node filesystem', () => {
     let afs = new AdaptiveFS({ flags: () => ({}) });

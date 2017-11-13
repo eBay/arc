@@ -232,8 +232,8 @@ describe('Resolver', () => {
         let noCache = elapsedNoCache[0] * 1000 + elapsedNoCache[1];
         let withCache = elapsedWithCache[0] * 1000 + elapsedWithCache[1];
 
-        console.log(`noCache: ${(noCache/1000).toFixed(3)} ms`);
-        console.log(`withCache: ${(withCache/1000).toFixed(3)} ms`);
+        console.log(`noCache: ${(noCache / 1000).toFixed(3)} ms`);
+        console.log(`withCache: ${(withCache / 1000).toFixed(3)} ms`);
 
         expect(noCache / withCache).to.be.above(1);
       });
@@ -303,16 +303,12 @@ describe('Resolver', () => {
 
       it('throw when no filepath is passed', () => {
         let filepath = null;
-        expect(() => resolver.isAdaptiveSync(filepath)).to.throw(
-          /filepath/i
-        );
+        expect(() => resolver.isAdaptiveSync(filepath)).to.throw(/filepath/i);
       });
 
       it('throw if a relative filepath is passed', () => {
         let filepath = './file.text';
-        expect(() => resolver.isAdaptiveSync(filepath)).to.throw(
-          /filepath/i
-        );
+        expect(() => resolver.isAdaptiveSync(filepath)).to.throw(/filepath/i);
       });
     });
 
@@ -384,11 +380,26 @@ describe('Resolver', () => {
   });
 
   describe('clearCache', () => {
-    let resolver = new Resolver();
     it('clears the cache', () => {
-      let before = resolver.dirCache;
+      // setup
+      let fs = new MemoryFS();
+      let resolver = new Resolver(fs);
+
+      // add a file and resolve
+      fs.writeFileSync('/file[before].js', 'Test Contents');
+      expect(resolver.resolveSync('/file.js', { before: true })).to.equal(
+        '/file[before].js'
+      );
+
+      // add a new file, but it can't be found because it's using old cache
+      fs.writeFileSync('/file[after].js', 'Test Contents');
+      expect(() => resolver.resolveSync('/file.js'), { after: true }).to.throw;
+
+      // clear the cache, now the new file can be found
       resolver.clearCache();
-      expect(resolver.dirCache).to.not.equal(before);
+      expect(resolver.resolveSync('/file.js', { after: true })).to.equal(
+        '/file[after].js'
+      );
     });
   });
 });
