@@ -1,19 +1,17 @@
 let path = require('path');
 let util = require('util');
-let CachedFs = require('cachedfs');
 let parse = require('arc-flag-parser').parse;
 let flaggedPathRegex = /\[(.*)\]/;
 
 module.exports = class Resolver {
   constructor(fs = require('fs')) {
     validateFS(fs);
-    this.fs = new CachedFs(fs);
+    this.fs = fs;
     this.fs.stat = util.promisify(this.fs.stat);
     this.fs.readdir = util.promisify(this.fs.readdir);
     this.dirCache = {};
   }
   clearCache() {
-    this.fs.cache.reset();
     this.dirCache = {};
   }
   getMatchesSync(dir, request, path) {

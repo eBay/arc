@@ -20,13 +20,16 @@ module.exports = function AdaptiveReadOnlyFS({ fs = require('fs'), flags } = {})
   let resolver = new Resolver(fs);
   let adaptiveFS = {
     // resolve: resolver.resolve.bind(resolver),
-    resolveSync: resolver.resolveSync.bind(resolver),
-    clearCache: resolver.clearCache.bind(resolver)
+    resolveSync: (path) => resolver.resolveSync(path, flags()),
+    clearCache: () => resolver.clearCache()
   };
 
   supportedMethods.forEach(methodName => {
     adaptiveFS[methodName] = function(path, ...rest) {
-      return fs[methodName](resolver.resolveSync(path, flags()), ...rest);
+      try {
+          path = resolver.resolveSync(path, flags());
+      } catch(e) {}
+      return fs[methodName](path, ...rest);
     };
   });
 

@@ -3,11 +3,19 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "nyc mocha"
+  },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "arc-resolver": "^1.0.1",
-    "resolve": "^1.1.7"
+    "arc-fs": "^1.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "memory-fs": "^0.4.1",
+    "mocha": "^4.0.1",
+    "nyc": "^11.3.0",
+    "webpack": "^3.8.1"
   }
 }
