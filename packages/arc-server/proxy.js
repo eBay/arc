@@ -1,19 +1,23 @@
 let arc = require('./index');
 let util = require('util');
 let inspectSymbol = util.inspect.custom;
-let Resolver = require('arc-resolver');
-let resolver = new Resolver();
-let debug = require('debug')('arc-server');
 
-module.exports = function AdaptiveProxy(resolvedPath, require) {
-  debug('creating proxy for ', resolvedPath.replace(process.cwd(), '~'));
-
+module.exports = function AdaptiveProxy(matches) {
   let handler = {};
+  let resolve = flags => {
+    let match = matches.find(match => match.flags.every(flag => flags[flag]));
+
+    if (!match) {
+      throw new Error('No match found');
+    }
+
+    return match.exports;
+  };
 
   Object.getOwnPropertyNames(Reflect).forEach(methodName => {
     handler[methodName] = function() {
       let args = [].slice.call(arguments, 1);
-      let target = require(resolver.resolveSync(resolvedPath, arc.getFlags()));
+      let target = resolve(arc.getFlags());
       let type = typeof target;
 
       // Primitives cannot be reflected, so wrap as Object instance
@@ -25,7 +29,6 @@ module.exports = function AdaptiveProxy(resolvedPath, require) {
     };
   });
 
-
   // Proxies cannot return non-configurable property descriptors
   let getOwnPropertyDescriptor = handler.getOwnPropertyDescriptor;
   handler.getOwnPropertyDescriptor = (...args) => {
@@ -35,7 +38,7 @@ module.exports = function AdaptiveProxy(resolvedPath, require) {
   };
 
   handler.get = (_target, property, receiver) => {
-    let target = require(resolver.resolveSync(resolvedPath, arc.getFlags()));
+    let target = resolve(arc.getFlags());
     let value = target[property];
 
     if (property === inspectSymbol) {
@@ -49,8 +52,6 @@ module.exports = function AdaptiveProxy(resolvedPath, require) {
     }
   };
 
-  return new Proxy(
-    /* istanbul ignore next: this will never be called */ () => {},
-    handler
-  );
+  let target = matches[0].exports;
+  return new Proxy(target instanceof Object ? target : {}, handler);
 };

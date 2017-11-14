@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
-    "test": "nyc lerna run --scope arc-* test && nyc report",
+    "test": "nyc mocha packages/arc-*/test*",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
@@ -23,7 +23,6 @@
       "**/coverage/**",
       "packages/example-*"
     ],
-    "silent": true,
     "cache": true,
     "all": true
   }

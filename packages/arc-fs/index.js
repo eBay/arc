@@ -13,21 +13,23 @@ let supportedMethods = [
 ];
 
 module.exports = function AdaptiveReadOnlyFS({ fs = require('fs'), flags } = {}) {
-  if (typeof flags !== 'function') {
-    throw new Error('flags should be a function which returns a flagset object');
-  }
-
   let resolver = new Resolver(fs);
   let adaptiveFS = {
     // resolve: resolver.resolve.bind(resolver),
-    resolveSync: (path) => resolver.resolveSync(path, flags()),
+    resolveSync: (path) => resolver.resolveSync(path, flags),
+    getMatchesSync: (path) => resolver.getMatchesSync(path),
+    isAdaptiveSync: (path) => resolver.isAdaptiveSync(path),
     clearCache: () => resolver.clearCache()
   };
 
   supportedMethods.forEach(methodName => {
     adaptiveFS[methodName] = function(path, ...rest) {
       try {
-          path = resolver.resolveSync(path, flags());
+        if (flags) {
+          path = resolver.resolveSync(path, flags);
+        } else {
+          path = resolver.getMatchesSync(path)[0].path
+        }
       } catch(e) {}
       return fs[methodName](path, ...rest);
     };

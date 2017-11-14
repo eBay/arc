@@ -1,4 +1,5 @@
 let AdaptiveFS = require('arc-fs');
+let proxyLoaderPath = require.resolve('./proxy-loader');
 
 class AdaptivePlugin {
   constructor({ flags, proxy } = {}) {
@@ -13,12 +14,29 @@ class AdaptivePlugin {
     compiler.plugin('normal-module-factory', nmf => {
       let resolver = compiler.resolvers.normal;
       let fs = resolver.fileSystem;
-      let afs = new AdaptiveFS({ fs, flags:this.flags });
+      let afs = new AdaptiveFS({ fs, flags: this.flags });
       resolver.fileSystem = afs;
-      resolver.plugin('before-existing-file', (request, callback) => {
-          let path = afs.resolveSync(request.path);
-          callback(null, Object.assign({}, request, { path }));
-      });
+      if (this.proxy) {
+          nmf.plugin('after-resolve', (data, callback) => {
+             if(afs.isAdaptiveSync(data.userRequest)) {
+               let matches = afs.getMatchesSync(data.userRequest);
+               data.loaders = [{
+                 options: {
+                   matches
+                 },
+                 loader: proxyLoaderPath
+               }];
+               data.resource = __filename;
+             }
+
+             callback(null, data);
+          });
+      } else {
+          resolver.plugin('before-existing-file', (request, callback) => {
+              let path = afs.resolveSync(request.path);
+              callback(null, Object.assign({}, request, { path }));
+          });
+      }
     });
     // compiler.plugin('context-module-factory', cmf => {
     //   let context = compiler.resolvers.context;

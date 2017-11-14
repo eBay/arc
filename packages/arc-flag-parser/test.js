@@ -1,7 +1,7 @@
 let expect = require('chai').expect;
 let { SyntaxError, parse } = require('./index');
 
-describe('Parser', () => {
+describe('Flag Parser', () => {
   describe('success', () => {
     it('should work', () => {
       expect(parse('mobile')).to.eql([['mobile']]);

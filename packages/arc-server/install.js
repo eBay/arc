@@ -1,13 +1,11 @@
 let AdaptiveFS = require('arc-fs');
-let Resolver = require('arc-resolver');
 let Module = require('module');
 let resolve = require('resolve');
 let path = require('path');
 let fs = require('fs');
 let AdaptiveProxy = require('./proxy');
 let arc = require('./index');
-let resolver = new Resolver();
-let afs = new AdaptiveFS({ flags: arc.getFlags });
+let afs = new AdaptiveFS();
 let _require = Module.prototype.require;
 let proxyCache = {};
 
@@ -39,13 +37,14 @@ Module.prototype.require = function(request) {
     });
   }
 
-  let isAdaptive = resolver.isAdaptiveSync(resolvedPath);
+  let isAdaptive = afs.isAdaptiveSync(resolvedPath);
   let proxy = proxyCache[resolvedPath];
 
   if (isAdaptive && !proxy) {
     proxy = proxyCache[resolvedPath] = new AdaptiveProxy(
-      resolvedPath,
-      _require
+      afs
+        .getMatchesSync(resolvedPath)
+        .map(match => ({ exports: _require(match.path), flags: match.flags }))
     );
   }
 
