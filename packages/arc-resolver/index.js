@@ -1,6 +1,6 @@
 let path = require('path');
 let util = require('util');
-let parse = require('arc-flag-parser').parse;
+let parseFlags = require('arc-flag-parser').parse;
 let flaggedPathRegex = /\[(.*)\]/;
 
 module.exports = class Resolver {
@@ -10,11 +10,50 @@ module.exports = class Resolver {
     this.fs.stat = util.promisify(this.fs.stat);
     this.fs.readdir = util.promisify(this.fs.readdir);
     this.dirCache = {};
+    this.matchCache = {};
   }
   clearCache() {
     this.dirCache = {};
+    this.matchCache = {};
   }
-  getMatchesSync(dir, request, path) {
+  getMatchesSync(filepath, path) {
+    if (typeof filepath !== 'string') {
+      throw new TypeError('Filepath must be a string.');
+    }
+
+    let matches = this.matchCache[filepath];
+
+    if (!matches) {
+      path = path || getPathHelper(filepath);
+      let parsed = path.parse(filepath);
+      if (parsed.root === filepath || flaggedPathRegex.test(parsed.base)) {
+        matches = this.matchCache[filepath] = [{ flags: [], path: filepath }];
+      } else {
+        let parentMatches = this.getMatchesSync(parsed.dir, path);
+        matches = this.matchCache[filepath] = parentMatches.reduce(
+          (matches, parent) => {
+            let childMatches = this.getDirMatchesSync(
+              parent.path,
+              parsed.base,
+              path
+            );
+            if (parent.flags.length) {
+              childMatches = childMatches.map(child => ({
+                flags: Array.from(new Set(parent.flags.concat(child.flags))),
+                path: child.path
+              }));
+            }
+            matches.push.apply(matches, childMatches);
+            return matches;
+          },
+          []
+        );
+      }
+    }
+
+    return matches;
+  }
+  getDirMatchesSync(dir, request, path) {
     let fs = this.fs;
     let cache = this.dirCache[dir];
 
@@ -29,7 +68,7 @@ module.exports = class Resolver {
         if (match) {
           let canonicalName = entryName.replace(match[0], '');
           let entryCache = (cache[canonicalName] = cache[canonicalName] || []);
-          let flagsets = parse(match[1]);
+          let flagsets = parseFlags(match[1]);
           flagsets.forEach(flags =>
             entryCache.push({ flags, path: entryPath })
           );
@@ -63,59 +102,21 @@ module.exports = class Resolver {
       throw new TypeError('Flags must be an object.');
     }
 
-    let path = getPathHelper(filepath);
+    let matches = this.getMatchesSync(filepath);
+    let match = matches.find(match => match.flags.every(flag => flags[flag]));
 
-    let locations = path.normalize(filepath).split(path.sep);
-    let currentPath = locations[0] || path.sep;
-
-    for (let i = 1; i < locations.length; i++) {
-      let location = locations[i];
-
-      if (!flaggedPathRegex.test(location)) {
-        let matches = this.getMatchesSync(currentPath, location, path);
-        let match = matches.find(match =>
-          match.flags.every(flag => flags[flag])
-        );
-
-        if (!match) {
-          throw new Error(
-            'No match found for ' + path.join(currentPath, location)
-          );
-        }
-
-        currentPath = match.path;
-      } else {
-        currentPath = path.join(currentPath, location);
-      }
+    if (!match) {
+      throw new Error('No match found for ' + filepath);
     }
 
-    return currentPath;
+    return match.path;
   }
   isAdaptiveSync(filepath) {
     if (typeof filepath !== 'string') {
       throw new TypeError('Filepath must be a string.');
     }
 
-    let path = getPathHelper(filepath);
-
-    let locations = path.normalize(filepath).split(path.sep);
-    let currentPath = locations[0] || path.sep;
-
-    for (let i = 1; i < locations.length; i++) {
-      let location = locations[i];
-
-      if (!flaggedPathRegex.test(location)) {
-        let matches = this.getMatchesSync(currentPath, location, path);
-
-        if (matches.length > 1) {
-          return true;
-        }
-      }
-
-      currentPath = path.join(currentPath, location);
-    }
-
-    return false;
+    return this.getMatchesSync(filepath).length > 1;
   }
 };
 

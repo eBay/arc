@@ -17,6 +17,113 @@ describe('Resolver', () => {
     });
   });
 
+  describe('getMatchesSync', () => {
+    it('throw when no filepath is passed', () => {
+      let resolver = new Resolver();
+      let filepath = null;
+      expect(() => resolver.getMatchesSync(filepath)).to.throw(/filepath/i);
+    });
+
+    it('should resolve multiple levels', () => {
+      // setup
+      let fs = new MemoryFS();
+      let resolver = new Resolver(fs);
+      fs.mkdirpSync('/foo/bar');
+      fs.mkdirpSync('/foo[mobile]/bar');
+      fs.writeFileSync('/foo/bar/index.js', 'contents');
+      fs.writeFileSync('/foo[mobile]/bar/index.js', 'contents');
+      fs.writeFileSync('/foo[mobile]/bar/index[ios].js', 'contents');
+
+      //test
+      let filepath = '/foo/bar/index.js';
+      let matches = resolver.getMatchesSync(filepath);
+      expect(matches).to.eql([
+        {
+          flags: ['mobile', 'ios'],
+          path: '/foo[mobile]/bar/index[ios].js'
+        },
+        {
+          flags: ['mobile'],
+          path: '/foo[mobile]/bar/index.js'
+        },
+        {
+          flags: [],
+          path: '/foo/bar/index.js'
+        }
+      ]);
+    });
+
+    it('should cache for better perf', () => {
+      // setup
+      let fs = new MemoryFS();
+      let resolver = new Resolver(fs);
+      fs.mkdirpSync('/foo/bar/baz');
+      fs.mkdirpSync('/foo[mobile]/bar/baz');
+      fs.mkdirpSync('/foo[desktop]/bar/baz');
+      fs.writeFileSync('/foo/bar/baz/index.js', 'contents');
+      fs.writeFileSync('/foo[mobile]/bar/baz/index.js', 'contents');
+      fs.writeFileSync('/foo[desktop]/bar/baz/index.js', 'contents');
+      fs.writeFileSync('/foo[desktop]/bar/baz/index[windows].js', 'contents');
+
+      //test
+      let filepath = '/foo/bar/baz/index.js';
+
+      // no cache
+      let startNoCache = process.hrtime();
+      let matchesNoCache = resolver.getMatchesSync(filepath);
+      let elapsedNoCache = process.hrtime(startNoCache);
+      expect(matchesNoCache).to.eql([
+        {
+          flags: ['mobile'],
+          path: '/foo[mobile]/bar/baz/index.js'
+        },
+        {
+          flags: ['desktop', 'windows'],
+          path: '/foo[desktop]/bar/baz/index[windows].js'
+        },
+        {
+          flags: ['desktop'],
+          path: '/foo[desktop]/bar/baz/index.js'
+        },
+        {
+          flags: [],
+          path: '/foo/bar/baz/index.js'
+        }
+      ]);
+
+      // with cache
+      let startWithCache = process.hrtime();
+      let matchesWithCache = resolver.getMatchesSync(filepath);
+      let elapsedWithCache = process.hrtime(startWithCache);
+      expect(matchesWithCache).to.eql([
+        {
+          flags: ['mobile'],
+          path: '/foo[mobile]/bar/baz/index.js'
+        },
+        {
+          flags: ['desktop', 'windows'],
+          path: '/foo[desktop]/bar/baz/index[windows].js'
+        },
+        {
+          flags: ['desktop'],
+          path: '/foo[desktop]/bar/baz/index.js'
+        },
+        {
+          flags: [],
+          path: '/foo/bar/baz/index.js'
+        }
+      ]);
+
+      let noCache = hrToMs(elapsedNoCache);
+      let withCache = hrToMs(elapsedWithCache);
+
+      console.log(`noCache: ${noCache.formatted}`);
+      console.log(`withCache: ${withCache.formatted}`);
+
+      expect(noCache.value / withCache.value).to.be.above(1);
+    });
+  });
+
   describe('resolveSync', () => {
     describe('api errors', () => {
       let resolver = new Resolver();
@@ -118,6 +225,7 @@ describe('Resolver', () => {
         let resolver = new Resolver(fs);
         fs.mkdirpSync('/foo/bar');
         fs.mkdirpSync('/foo[mobile]/bar');
+        fs.writeFileSync('/foo/bar/index.js', 'contents');
         fs.writeFileSync('/foo[mobile]/bar/index.js', 'contents');
         fs.writeFileSync('/foo[mobile]/bar/index[ios].js', 'contents');
 
@@ -189,12 +297,12 @@ describe('Resolver', () => {
         let resolver = new Resolver(fs);
         fs.mkdirpSync('/foo');
         fs.mkdirpSync('/foo[android]');
-        fs.writeFileSync('/foo/file[android].js', 'contents');
+        fs.writeFileSync('/foo/file[android+another].js', 'contents');
         fs.writeFileSync('/foo[android]/file.js', 'contents');
 
         //test
         let filepath = '/foo/file.js';
-        let flags = { android: true };
+        let flags = { android: true, another: true };
         let resolved = resolver.resolveSync(filepath, flags);
         expect(resolved).to.equal('/foo[android]/file.js');
       });
@@ -206,6 +314,8 @@ describe('Resolver', () => {
         fs.mkdirpSync('/foo/bar/baz');
         fs.mkdirpSync('/foo[mobile]/bar/baz');
         fs.mkdirpSync('/foo[desktop]/bar/baz');
+        fs.writeFileSync('/foo/bar/baz/index.js', 'contents');
+        fs.writeFileSync('/foo[mobile]/bar/baz/index.js', 'contents');
         fs.writeFileSync('/foo[desktop]/bar/baz/index.js', 'contents');
         fs.writeFileSync('/foo[desktop]/bar/baz/index[windows].js', 'contents');
 
@@ -229,13 +339,13 @@ describe('Resolver', () => {
           '/foo[desktop]/bar/baz/index[windows].js'
         );
 
-        let noCache = elapsedNoCache[0] * 1000 + elapsedNoCache[1];
-        let withCache = elapsedWithCache[0] * 1000 + elapsedWithCache[1];
+        let noCache = hrToMs(elapsedNoCache);
+        let withCache = hrToMs(elapsedWithCache);
 
-        console.log(`noCache: ${(noCache / 1000).toFixed(3)} ms`);
-        console.log(`withCache: ${(withCache / 1000).toFixed(3)} ms`);
+        console.log(`noCache: ${noCache.formatted}`);
+        console.log(`withCache: ${withCache.formatted}`);
 
-        expect(noCache / withCache).to.be.above(1);
+        expect(noCache.value / withCache.value).to.be.above(1);
       });
 
       it('should handle multi-extension files', () => {
@@ -329,8 +439,8 @@ describe('Resolver', () => {
       // setup
       let fs = new MemoryFS();
       let resolver = new Resolver(fs);
-      fs.mkdirpSync('/test/foo');
-      fs.mkdirpSync('/test[mobile]/foo');
+      fs.mkdirpSync('/test/foo/bar');
+      fs.mkdirpSync('/test[mobile]/foo/bar');
 
       // test
       let filepath = '/test/foo/bar';
@@ -338,7 +448,7 @@ describe('Resolver', () => {
       expect(isAdaptive).to.equal(true);
     });
 
-    it('should check adapted paths', () => {
+    it('should check already adapted paths', () => {
       // setup
       let fs = new MemoryFS();
       let resolver = new Resolver(fs);
@@ -403,3 +513,11 @@ describe('Resolver', () => {
     });
   });
 });
+
+function hrToMs(hr) {
+  let value = hr[0] * 1000 + hr[1] / 1000000;
+  return {
+    value,
+    formatted: value.toFixed(3) + 'ms'
+  };
+}
