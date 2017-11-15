@@ -73,7 +73,13 @@ describe('Flag Parser', () => {
       expect(() => parse('mobile+[ios,')).to.throw(SyntaxError);
     });
     it('should fail', () => {
+      expect(() => parse('\n')).to.throw(SyntaxError);
+    });
+    it('should fail', () => {
       expect(() => parse('[ios,foo,]')).to.throw(SyntaxError);
+    });
+    it('should fail', () => {
+      expect(() => parse('[ios,foo,a!]')).to.throw(SyntaxError);
     });
     it('should fail', () => {
       expect(() => parse('@')).to.throw(SyntaxError);

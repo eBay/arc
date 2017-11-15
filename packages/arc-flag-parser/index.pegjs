@@ -42,5 +42,5 @@ Factor
   = "[" expr:Expression "]" { return expr; }
   / Flag
 
-Flag "flag"
+Flag
   = [a-z\_\-A-Z0-9]+ { return [text()]; }
