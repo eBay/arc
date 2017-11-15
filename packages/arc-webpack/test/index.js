@@ -19,9 +19,9 @@ describe('AdaptivePlugin', () => {
     });
     let fs = (compiler.outputFileSystem = new MemoryFS());
     await promisify(compiler.run).call(compiler);
-    expect(fs.readFileSync('/bundle.js', 'utf-8')).to.include(
-      `console.log('mobile')`
-    );
+    let bundle = fs.readFileSync('/bundle.js', 'utf-8');
+    expect(bundle).to.not.include(`console.log('desktop')`);
+    expect(bundle).to.include(`console.log('mobile')`);
   });
   it('should work', async () => {
     let compiler = webpack({
@@ -31,9 +31,9 @@ describe('AdaptivePlugin', () => {
     });
     let fs = (compiler.outputFileSystem = new MemoryFS());
     await promisify(compiler.run).call(compiler);
-    expect(fs.readFileSync('/bundle.js', 'utf-8')).to.include(
-      `console.log('desktop')`
-    );
+    let bundle = fs.readFileSync('/bundle.js', 'utf-8');
+    expect(bundle).to.include(`console.log('desktop')`);
+    expect(bundle).to.not.include(`console.log('mobile')`);
   });
   it('should work', async () => {
     let compiler = webpack({
