@@ -40,7 +40,7 @@ describe('AdaptivePlugin', () => {
       target: 'async-node',
       entry: require.resolve('./fixture'),
       output: { path: '/', filename: 'bundle.js', libraryTarget: 'commonjs2' },
-      externals: [/^[^./!]/, /arc-server\/proxy/],
+      externals: [/^[^./!]/],
       module: {
         rules: [
           {
