@@ -77,7 +77,7 @@ require('marko/express');
         └── style.less
 ```
 - `common.js` contains any Javascript code shared across device types and can be extended in `component.js`
-- `index.arc` contains the proxy and fallback as you'll see in #7 below
+- `index.arc` contains the proxy and fallback as you'll see in #8 below
 - In the example above, each device has its own javascript (`component.js`), markup (`index.marko`), and styles (`style.less`)
 
 8. In `index.arc`, write
