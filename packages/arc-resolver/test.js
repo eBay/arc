@@ -37,18 +37,18 @@ describe('Resolver', () => {
       //test
       let filepath = '/foo/bar/index.js';
       let matches = resolver.getMatchesSync(filepath);
-      expect(matches).to.eql([
+      expect(matches.raw).to.eql([
         {
           flags: ['mobile', 'ios'],
-          path: '/foo[mobile]/bar/index[ios].js'
+          value: '/foo[mobile]/bar/index[ios].js'
         },
         {
           flags: ['mobile'],
-          path: '/foo[mobile]/bar/index.js'
+          value: '/foo[mobile]/bar/index.js'
         },
         {
           flags: [],
-          path: '/foo/bar/index.js'
+          value: '/foo/bar/index.js'
         }
       ]);
     });
@@ -72,22 +72,22 @@ describe('Resolver', () => {
       let startNoCache = process.hrtime();
       let matchesNoCache = resolver.getMatchesSync(filepath);
       let elapsedNoCache = process.hrtime(startNoCache);
-      expect(matchesNoCache).to.eql([
+      expect(matchesNoCache.raw).to.eql([
         {
           flags: ['mobile'],
-          path: '/foo[mobile]/bar/baz/index.js'
+          value: '/foo[mobile]/bar/baz/index.js'
         },
         {
           flags: ['desktop', 'windows'],
-          path: '/foo[desktop]/bar/baz/index[windows].js'
+          value: '/foo[desktop]/bar/baz/index[windows].js'
         },
         {
           flags: ['desktop'],
-          path: '/foo[desktop]/bar/baz/index.js'
+          value: '/foo[desktop]/bar/baz/index.js'
         },
         {
           flags: [],
-          path: '/foo/bar/baz/index.js'
+          value: '/foo/bar/baz/index.js'
         }
       ]);
 
@@ -95,22 +95,22 @@ describe('Resolver', () => {
       let startWithCache = process.hrtime();
       let matchesWithCache = resolver.getMatchesSync(filepath);
       let elapsedWithCache = process.hrtime(startWithCache);
-      expect(matchesWithCache).to.eql([
+      expect(matchesWithCache.raw).to.eql([
         {
           flags: ['mobile'],
-          path: '/foo[mobile]/bar/baz/index.js'
+          value: '/foo[mobile]/bar/baz/index.js'
         },
         {
           flags: ['desktop', 'windows'],
-          path: '/foo[desktop]/bar/baz/index[windows].js'
+          value: '/foo[desktop]/bar/baz/index[windows].js'
         },
         {
           flags: ['desktop'],
-          path: '/foo[desktop]/bar/baz/index.js'
+          value: '/foo[desktop]/bar/baz/index.js'
         },
         {
           flags: [],
-          path: '/foo/bar/baz/index.js'
+          value: '/foo/bar/baz/index.js'
         }
       ]);
 

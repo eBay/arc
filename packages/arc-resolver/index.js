@@ -27,20 +27,20 @@ module.exports = class Resolver {
       path = path || getPathHelper(filepath);
       let parsed = path.parse(filepath);
       if (parsed.root === filepath || flaggedPathRegex.test(parsed.base)) {
-        matches = this.matchCache[filepath] = [{ flags: [], path: filepath }];
+        matches = [{ flags: [], value: filepath }];
       } else {
-        let parentMatches = this.getMatchesSync(parsed.dir, path);
-        matches = this.matchCache[filepath] = parentMatches.reduce(
+        let parentMatches = this.getMatchesSync(parsed.dir, path).raw;
+        matches = parentMatches.reduce(
           (matches, parent) => {
             let childMatches = this.getDirMatchesSync(
-              parent.path,
+              parent.value,
               parsed.base,
               path
             );
             if (parent.flags.length) {
               childMatches = childMatches.map(child => ({
                 flags: Array.from(new Set(parent.flags.concat(child.flags))),
-                path: child.path
+                value: child.value
               }));
             }
             matches.push.apply(matches, childMatches);
@@ -49,6 +49,8 @@ module.exports = class Resolver {
           []
         );
       }
+
+      matches = this.matchCache[filepath] = new MatchSet(matches);
     }
 
     return matches;
@@ -70,11 +72,11 @@ module.exports = class Resolver {
           let entryCache = (cache[canonicalName] = cache[canonicalName] || []);
           let flagsets = parseFlags(match[1]);
           flagsets.forEach(flags =>
-            entryCache.push({ flags, path: entryPath })
+            entryCache.push({ flags, value: entryPath })
           );
         } else {
           let entryCache = (cache[entryName] = cache[entryName] || []);
-          entryCache.push({ flags: [], path: entryPath });
+          entryCache.push({ flags: [], value: entryPath });
         }
       });
 
@@ -102,21 +104,14 @@ module.exports = class Resolver {
       throw new TypeError('Flags must be an object.');
     }
 
-    let matches = this.getMatchesSync(filepath);
-    let match = matches.find(match => match.flags.every(flag => flags[flag]));
-
-    if (!match) {
-      throw new Error('No match found for ' + filepath);
-    }
-
-    return match.path;
+    return this.getMatchesSync(filepath).match(flags);
   }
   isAdaptiveSync(filepath) {
     if (typeof filepath !== 'string') {
       throw new TypeError('Filepath must be a string.');
     }
 
-    return this.getMatchesSync(filepath).length > 1;
+    return this.getMatchesSync(filepath).count > 1;
   }
 };
 
@@ -149,5 +144,39 @@ function validateFS(fs) {
         missing.join(', ') +
         '.'
     );
+  }
+}
+
+module.exports.createMatchSet = (matches) => {
+  return (matches instanceof MatchSet) ? matches : new MatchSet(matches);
+}
+
+class MatchSet {
+  constructor(matches) {
+    this.raw = matches;
+  }
+  get default() {
+    return this.raw[this.raw.length-1].value;
+  }
+  get count() {
+    return this.raw.length
+  }
+  mapSet(fn) {
+    return new MatchSet(this.raw.map(({ flags, value }, index) => ({
+      flags: flags,
+      value: fn(value, flags, index)
+    })));
+  }
+  map(fn) {
+    return this.raw.map(({ flags, value }, index) => fn(value, flags, index));
+  }
+  match(flags) {
+    let match = this.raw.find(match => match.flags.every(flag => flags[flag]));
+
+    if (!match) {
+      throw new Error('No match found');
+    }
+
+    return match.value;
   }
 }

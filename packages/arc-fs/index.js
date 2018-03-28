@@ -28,7 +28,7 @@ module.exports = function AdaptiveReadOnlyFS({ fs = require('fs'), flags } = {})
         if (flags) {
           path = resolver.resolveSync(path, flags);
         } else {
-          path = resolver.getMatchesSync(path)[0].path
+          path = resolver.getMatchesSync(path).default;
         }
       } catch(e) {}
       return fs[methodName](path, ...rest);

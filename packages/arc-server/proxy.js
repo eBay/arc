@@ -4,20 +4,11 @@ let inspectSymbol = util.inspect.custom;
 
 module.exports = function AdaptiveProxy(matches) {
   let handler = {};
-  let resolve = flags => {
-    let match = matches.find(match => match.flags.every(flag => flags[flag]));
-
-    if (!match) {
-      throw new Error('No match found');
-    }
-
-    return match.exports;
-  };
 
   Object.getOwnPropertyNames(Reflect).forEach(methodName => {
     handler[methodName] = function() {
       let args = [].slice.call(arguments, 1);
-      let target = resolve(arc.getFlags());
+      let target = matches.match(arc.getFlags());
       let type = typeof target;
 
       // Primitives cannot be reflected, so wrap as Object instance
@@ -38,7 +29,7 @@ module.exports = function AdaptiveProxy(matches) {
   };
 
   handler.get = (_target, property, receiver) => {
-    let target = resolve(arc.getFlags());
+    let target = matches.match(arc.getFlags());
     let value = target[property];
 
     if (property === inspectSymbol) {
@@ -52,6 +43,6 @@ module.exports = function AdaptiveProxy(matches) {
     }
   };
 
-  let target = matches[0].exports;
+  let target = matches.default;
   return new Proxy(target instanceof Object ? target : {}, handler);
 };

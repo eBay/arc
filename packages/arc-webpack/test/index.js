@@ -35,7 +35,7 @@ describe('AdaptivePlugin', () => {
     expect(bundle).to.include(`console.log('desktop')`);
     expect(bundle).to.not.include(`console.log('mobile')`);
   });
-  it('should work', async () => {
+  it('should bundle proxies for the server', async () => {
     let compiler = webpack({
       target: 'async-node',
       entry: require.resolve('./fixture'),

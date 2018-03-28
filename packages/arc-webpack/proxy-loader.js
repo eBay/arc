@@ -12,15 +12,15 @@ try {
 module.exports = function(source) {
   let options = loaderUtils.getOptions(this);
   let matches = options.matches;
+  let stringify = JSON.stringify;
   let code = `
        let Proxy = require('arc-server/proxy');
-       let matches = [${matches
-         .map(match => {
-           return `{ exports:require('${match.path}'), flags:${JSON.stringify(
-             match.flags
-           )}}`;
+       let Resolver = require('arc-resolver');
+       let matches = Resolver.createMatchSet([${matches
+         .map((path, flags) => {
+           return `{ value:require(${stringify(path)}), flags:${stringify(flags)}}`;
          })
-         .join(',')}];
+         .join(',')}]);
 
        module.exports = new Proxy(matches);
    `;

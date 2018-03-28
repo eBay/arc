@@ -10,11 +10,12 @@ let _require = Module.prototype.require;
 let proxyCache = {};
 
 Module.prototype.require = function(request) {
-  let resolved;
+  let resolvedPath;
   let basedir = this.filename
     ? path.dirname(this.filename)
     : /* istanbul ignore next: fallback for node repl */ process.cwd();
   let extensions = Object.keys(require.extensions);
+  
 
   if (isCoreModule(request)) {
     return _require(request);
@@ -26,7 +27,7 @@ Module.prototype.require = function(request) {
     resolvedPath = resolve.sync(request, {
       basedir,
       extensions,
-      readFile: afs.readFileSync,
+      readFileSync: afs.readFileSync,
       isFile: file => {
         try {
           return afs.statSync(file).isFile();
@@ -42,9 +43,7 @@ Module.prototype.require = function(request) {
 
   if (isAdaptive && !proxy) {
     proxy = proxyCache[resolvedPath] = new AdaptiveProxy(
-      afs
-        .getMatchesSync(resolvedPath)
-        .map(match => ({ exports: _require(match.path), flags: match.flags }))
+      afs.getMatchesSync(resolvedPath).mapSet(path => _require(path))
     );
   }
 
