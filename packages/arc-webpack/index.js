@@ -1,37 +1,54 @@
-var path = require('path');
-var arcResolver = require('arc-resolver');
+let AdaptiveFS = require('arc-fs');
+let proxyLoaderPath = require.resolve('./proxy-loader');
 
-module.exports.adaptFiles = adaptFiles;
-module.exports.getOutputPath = getOutputPath;
+class AdaptivePlugin {
+  constructor({ flags, proxy } = {}) {
+    if(!flags && !proxy) {
+      throw new Error('The AdaptivePlugin should be passed flags or proxy should be true.');
+    }
 
-/**
- * Get output.path to be used by webpack config
- * 
- * @param {String} dirname - your app's `__dirname`
- * @param {String} outputFolder - name of containing folder for output from webpack config
- * @param {Array} flags - combination of flags (e.g device type, screen size, brand) for one output set
- * 
- * @return {String}
- */
-function getOutputPath(dirname, outputFolder, flags) {
-    return path.join(dirname, outputFolder, (arcResolver.joinFlags(flags) || 'default'));
+    this.flags = flags;
+    this.proxy = proxy || false;
+  }
+  apply(compiler) {
+    compiler.plugin('normal-module-factory', nmf => {
+      let resolver = compiler.resolvers.normal;
+      let fs = resolver.fileSystem;
+      let afs = new AdaptiveFS({ fs, flags: this.flags });
+      resolver.fileSystem = afs;
+      if (this.proxy) {
+          nmf.plugin('after-resolve', (data, callback) => {
+             if(afs.isAdaptiveSync(data.userRequest)) {
+               let matches = afs.getMatchesSync(data.userRequest);
+               data.loaders = [{
+                 options: {
+                   matches
+                 },
+                 loader: proxyLoaderPath
+               }];
+               data.resource = __filename;
+             }
+
+             callback(null, data);
+          });
+      } else {
+          resolver.plugin('before-existing-file', (request, callback) => {
+              let path = afs.resolveSync(request.path);
+              callback(null, Object.assign({}, request, { path }));
+          });
+      }
+    });
+    // compiler.plugin('context-module-factory', cmf => {
+    //   let context = compiler.resolvers.context;
+    //   let fs = context.fileSystem;
+    //   let afs = new AdaptiveFS({ fs, flags:this.flags });
+    //   context.fileSystem = afs;
+    //   context.plugin('before-existing-file', (request, callback) => {
+    //       let path = afs.resolveSync(request.path);
+    //       callback(null, Object.assign({}, request, { path }));
+    //   });
+    // });
+  }
 }
 
-/**
- * Hooks into webpack resolve step to process every path through arc imports logic
- * Returns an object with `apply` property following webpack plugin paradigm
- * 
- * @param {Array} flags - combination of flags (e.g device type, screen size, brand) to be processed
- * 
- * @return {Object} 
- */
-function adaptFiles(flags) {
-    return {
-        apply: (resolver) => {
-            resolver.plugin('before-existing-file', (request, callback) => {
-                var adaptedPath = arcResolver.adaptResource(request.path, flags);
-                callback(null, Object.assign({}, request, { path: adaptedPath }));
-            });
-        }
-    };
-}
+module.exports = AdaptivePlugin;

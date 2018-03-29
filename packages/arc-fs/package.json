@@ -1,0 +1,20 @@
+{
+  "name": "arc-fs",
+  "version": "2.0.0-alpha.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc mocha test.js"
+  },
+  "author": "Michael Rawlings <ml.rawlings@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "arc-resolver": "^2.0.0-alpha.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "memory-fs": "^0.4.1",
+    "mocha": "^3.2.0",
+    "nyc": "^11.3.0"
+  }
+}

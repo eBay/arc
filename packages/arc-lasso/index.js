@@ -1,27 +1,17 @@
-var path = require('path');
-var arcResolver = require('arc-resolver');
+let path = require('path');
+let AdaptiveFS = require('arc-fs');
 
 module.exports = function(lasso, config) {
     lasso.config.resolver = {
         postResolve: function(resolvedInfo, lassoContext) {
-            var original = resolvedInfo.path;
-            if (/\.arc$/.test(original)) {
-                try {
-                    resolvedInfo.path = require.resolve(arcResolver.adaptResource(resolvedInfo.path, lassoContext.flags.flagMap));
-                } catch(e) {
-                    console.error(e);
-                    throw e;
-                }
-            }
-            if (original != resolvedInfo.path) {
+            let afs = new AdaptiveFS({ flags: lassoContext.flags.flagMap });
+            let originalPath = resolvedInfo.path;
+            let adaptedPath = resolvedInfo.path = afs.resolveSync(originalPath);
+
+            if (originalPath != adaptedPath) {
                 delete resolvedInfo.meta;
-                console.log(original, '→', path.relative(path.dirname(original), resolvedInfo.path));
+                // console.log(originalPath, '→', path.relative(path.dirname(originalPath), adaptedPath));
             }
         }
     }
-    lasso.dependencies.registerRequireType('arc', {
-        read: function() {
-            return 'throw new Error("Something went wrong with the arc-lasso plugin.  The read function should not be called");';
-        }
-    });
 }

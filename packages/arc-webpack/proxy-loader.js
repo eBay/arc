@@ -1,34 +1,29 @@
-var path = require('path');
-var resolve = require('resolve');
-var arcResolver = require('arc-resolver');
-var arcResolverPath = require.resolve('arc-resolver');
+let js = JSON.stringify;
+let loaderUtils = require('loader-utils');
+
+try {
+  require.resolve('arc-server/proxy');
+} catch (e) {
+  /* istanbul ignore next: give a helpful error if the user doesn't have arc-server installed */
+  throw new Error(
+    "Using proxy with `arc-webpack` requires that you have `arc-server` installed as a dependency of your project, but we can't find it."
+  );
+}
 
 module.exports = function(source) {
-    let target = this.target;
-    let resourcePath = this.resourcePath;
-    let config = JSON.parse(source);
-    let proxyPath = resolve.sync(config.proxy, { basedir:path.dirname(resourcePath) });
-    let matches = arcResolver.getFileMatches(resourcePath);
+  let options = loaderUtils.getOptions(this);
+  let matches = options.matches;
+  let code = `
+    let Proxy = require('arc-server/proxy');
+    let MatchSet = require('arc-resolver').MatchSet;
+    let matches = new MatchSet([${
+      Array.from(matches).map(({ value, flags }) => {
+        return `{ value:require(${js(value)}), flags:${js(flags)}}`;
+      }).join(',')
+    }]);
 
-    if (target === 'node') {
-         let code = `
-            let config = ${source};
-            let proxy = require('${proxyPath}');
-            let resourcePath = '${resourcePath}';
-            let getBestMatch = require('${arcResolverPath}').getBestMatch;
-            let matches = [${matches.map(match => {
-                return `{ exports:require('${match.file}'), flags:${JSON.stringify(match.flags)}}`
-            }).join(',')}];
+    module.exports = new Proxy(matches);
+  `;
 
-            function requireAdapted(flags) {
-                return getBestMatch(matches, flags).exports;
-            }
-
-            module.exports = proxy(requireAdapted, config);
-        `;
-
-        return code;
-    } else {
-        throw new Error('The proxy loader should only be used for server bundles (target=node).');
-    }
-}
+  return code;
+};
