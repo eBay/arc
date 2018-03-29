@@ -1,3 +1,4 @@
+let js = JSON.stringify;
 let loaderUtils = require('loader-utils');
 
 try {
@@ -12,18 +13,17 @@ try {
 module.exports = function(source) {
   let options = loaderUtils.getOptions(this);
   let matches = options.matches;
-  let stringify = JSON.stringify;
   let code = `
-       let Proxy = require('arc-server/proxy');
-       let Resolver = require('arc-resolver');
-       let matches = Resolver.createMatchSet([${matches
-         .map((path, flags) => {
-           return `{ value:require(${stringify(path)}), flags:${stringify(flags)}}`;
-         })
-         .join(',')}]);
+    let Proxy = require('arc-server/proxy');
+    let MatchSet = require('arc-resolver').MatchSet;
+    let matches = new MatchSet([${
+      Array.from(matches).map(({ value, flags }) => {
+        return `{ value:require(${js(value)}), flags:${js(flags)}}`;
+      }).join(',')
+    }]);
 
-       module.exports = new Proxy(matches);
-   `;
+    module.exports = new Proxy(matches);
+  `;
 
   return code;
 };

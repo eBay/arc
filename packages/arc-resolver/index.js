@@ -3,7 +3,7 @@ let util = require('util');
 let parseFlags = require('arc-flag-parser').parse;
 let flaggedPathRegex = /\[(.*)\]/;
 
-module.exports = class Resolver {
+class Resolver {
   constructor(fs = require('fs')) {
     validateFS(fs);
     this.fs = fs;
@@ -146,11 +146,6 @@ function validateFS(fs) {
     );
   }
 }
-
-module.exports.createMatchSet = (matches) => {
-  return (matches instanceof MatchSet) ? matches : new MatchSet(matches);
-}
-
 class MatchSet {
   constructor(matches) {
     this.raw = matches;
@@ -161,14 +156,11 @@ class MatchSet {
   get count() {
     return this.raw.length
   }
-  mapSet(fn) {
+  map(fn) {
     return new MatchSet(this.raw.map(({ flags, value }, index) => ({
       flags: flags,
       value: fn(value, flags, index)
     })));
-  }
-  map(fn) {
-    return this.raw.map(({ flags, value }, index) => fn(value, flags, index));
   }
   match(flags) {
     let match = this.raw.find(match => match.flags.every(flag => flags[flag]));
@@ -179,4 +171,10 @@ class MatchSet {
 
     return match.value;
   }
+  [Symbol.iterator]() {
+    return this.raw[Symbol.iterator]();
+  }
 }
+
+module.exports = Resolver;
+module.exports.MatchSet = MatchSet;

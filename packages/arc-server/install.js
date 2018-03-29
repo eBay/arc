@@ -43,7 +43,7 @@ Module.prototype.require = function(request) {
 
   if (isAdaptive && !proxy) {
     proxy = proxyCache[resolvedPath] = new AdaptiveProxy(
-      afs.getMatchesSync(resolvedPath).mapSet(path => _require(path))
+      afs.getMatchesSync(resolvedPath).map(path => _require(path))
     );
   }
 
