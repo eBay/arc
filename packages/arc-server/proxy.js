@@ -1,22 +1,21 @@
 let arc = require('./index');
 let util = require('util');
 let inspectSymbol = util.inspect.custom;
+let primitiveSymbol = Symbol.toPrimitive;
+let builtins = Object.prototype;
 
-module.exports = function AdaptiveProxy(matches) {
+module.exports = function AdaptiveProxy(matches, path = []) {
   let handler = {};
+  let defaultTarget = getPath(matches.default, path);
+  let proxyCache = {};
 
   Object.getOwnPropertyNames(Reflect).forEach(methodName => {
     handler[methodName] = function() {
       let args = [].slice.call(arguments, 1);
-      let target = matches.match(arc.getFlags());
-      let type = typeof target;
+      let flags = arc.getFlags();
+      let target = flags ? getPath(matches.match(flags), path) : defaultTarget;
 
-      // Primitives cannot be reflected, so wrap as Object instance
-      if (type === 'string') target = new String(target);
-      else if (type === 'number') target = new Number(target);
-      else if (type === 'boolean') target = new Boolean(target);
-
-      return Reflect[methodName](target, ...args);
+      return Reflect[methodName](Object(target), ...args);
     };
   });
 
@@ -29,20 +28,39 @@ module.exports = function AdaptiveProxy(matches) {
   };
 
   handler.get = (_target, property, receiver) => {
-    let target = matches.match(arc.getFlags());
-    let value = target[property];
+    let flags = arc.getFlags();
+    let target = flags ? getPath(matches.match(flags), path) : defaultTarget;
+    let value = target[property]
 
     if (property === inspectSymbol) {
       // run inspect on the target to get transparent console output
       return () => util.inspect(target);
-    } else if (typeof value === 'function') {
+    } else if (property === primitiveSymbol) {
+      return () => target.valueOf();
+    } else if (typeof value === 'function' && builtins[property]) {
       // bind functions to the target so that built in types work properly
       return value.bind(target);
+    } else if (!flags) {
+      let cachedProxy = proxyCache[property];
+      if (!cachedProxy) {
+        cachedProxy = proxyCache[property] = AdaptiveProxy(matches, path.concat(property))
+      }
+      return cachedProxy;
     } else {
       return value;
     }
   };
 
-  let target = matches.default;
-  return new Proxy(target instanceof Object ? target : {}, handler);
+  if (defaultTarget == null) {
+    return defaultTarget;
+  } else {
+    return new Proxy(Object(defaultTarget), handler);
+  }
 };
+
+function getPath(object, path) {
+  for (key of path) {
+    object = object[key];
+  }
+  return object;
+}

@@ -2,6 +2,7 @@ require('../install');
 
 let expect = require('chai').expect;
 let arc = require('../index');
+let AdaptiveProxy = require('../proxy');
 
 describe('Context API', () => {
   describe('setFlags', () => {
@@ -58,7 +59,7 @@ describe('AdaptiveRequireHook', () => {
     });
   });
 
-  describe('primities', () => {
+  describe('primitives', () => {
     it('should resolve adaptive files', function() {
       let primitive = require('./primitives');
       arc.beginContext(() => {
@@ -161,4 +162,117 @@ describe('AdaptiveRequireHook', () => {
     });
   });
 });
-// app.use((req, res, next) => arc.beginContext(next));
+
+describe('AdaptiveProxy', () => {
+  
+  it('should work outside an arc context', () => {
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return { a: { b: { c() { return 123; } } } }
+      }
+    });
+    expect(proxy.a.b.c()).to.equal(123);
+  });
+
+  it('should work outside an arc context (primitives)', () => {
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return { a: { b: { c: 123 } } }
+      }
+    });
+    
+    expect(+proxy.a.b.c).to.equal(123);
+    expect(proxy.a.b.c).to.not.equal(123);
+    expect(proxy.a.b.c == 123).to.equal(true);
+    expect(proxy.a.b.c === 123).to.equal(false);
+  });
+
+  it('should work with a class instance outside an arc context (primitives)', () => {
+    class Test {
+      constructor(val) {
+        this.val = val;
+      }
+      get() {
+        return this.val;
+      }
+    }
+
+    let defaultValue = new Test(123);
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return defaultValue;
+      }
+    });
+
+    expect(+proxy.get()).to.equal(123);
+    expect(proxy.get()).to.not.equal(123);
+    expect(proxy.get() == 123).to.equal(true);
+    expect(proxy.get() === 123).to.equal(false);
+  });
+
+  it('should return null/undefined if a property that doesn\'t exist on the default target is accessed outside an arc context', () => {
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return { a: 123 }
+      }
+    });
+    expect(proxy.d).to.equal(undefined);
+  });
+
+  it('should proxy multiple levels outside an arc context', () => {
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return { a: { b: { c() { return 123; } } } };
+      },
+      match() {
+        return { a: { b: { c() { return 456; } } } };
+      }
+    });
+    let c = proxy.a.b.c;
+    arc.beginContext(() => {
+      arc.setFlags(['*']);
+      expect(c()).to.equal(456);
+    });
+  });
+
+  it('should proxy multiple levels outside an arc context (primitives)', () => {
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return { a: { b: { c: 'abc' } } };
+      },
+      match() {
+        return { a: { b: { c: 'def' } } };
+      }
+    });
+    let c = proxy.a.b.c;
+    arc.beginContext(() => {
+      arc.setFlags(['*']);
+      expect(''+c).to.equal('def');
+      expect(c).to.not.equal('def');
+      expect(c == 'def').to.equal(true);
+      expect(c === 'def').to.equal(false);
+    });
+  });
+
+  it('should resolve immediately when in an arc context', () => {
+    let defaultValue = { a:true };
+    let matchedValue = { a:false };
+    let proxy = new AdaptiveProxy({ 
+      get default() {
+        return defaultValue;
+      },
+      match() {
+        return matchedValue;
+      }
+    });
+
+    expect(proxy.a).to.not.equal(defaultValue.a);
+    expect(proxy.a).to.not.equal(matchedValue.a);
+    expect()
+    arc.beginContext(() => {
+      arc.setFlags(['*']);
+      expect(proxy.a).to.not.equal(defaultValue.a);
+      expect(proxy.a).to.equal(matchedValue.a);
+    });
+  });
+})
