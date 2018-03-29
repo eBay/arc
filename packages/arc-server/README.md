@@ -1,72 +1,93 @@
 # arc-server
 
+<a href="https://www.ebay.com">
+   <img src="https://img.shields.io/badge/ebay-open%20source-01d5c2.svg" alt="ebay open source"/>
+</a>
+<a href="https://img.shields.io/github/license/eBay/arc.svg">
+   <img src="https://img.shields.io/github/license/eBay/arc.svg" alt="MIT licensed"/>
+</a>
+<a href="https://travis-ci.org/eBay/arc">
+   <img src="https://travis-ci.org/eBay/arc.svg?branch=master" alt="travisci build"/>
+</a>
+<a href="https://codecov.io/gh/eBay/arc/list/master/packages/arc-server">
+  <img src="https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg" alt="Codecov" />
+</a>
+<a href="https://www.npmjs.com/package/arc-server">
+   <img src="https://img.shields.io/npm/v/arc-server/next.svg" alt="npm version"/>
+</a>
+<a href="http://npm-stat.com/charts.html?package=arc-server">
+   <img src="https://img.shields.io/npm/dm/arc-server.svg" alt="downloads"/>
+</a>
+
 ## API
 
 The `arc-server` api is split into 3 submodules:
 
 ### `arc-server`
 
-#### `beginContext`
-#### `setFlags`
-#### `getFlags`
+```js
+import { beginContext, setFlags, getFlags } from 'arc-server';
+```
+
+- `beginContext(fn)`: begins a new `arc` context.  any calls made from `fn` are in this context
+- `setFlags(flags)`: set flags for the current context
+- `getFlags()`: get flags for the current context
+
+#### Example
+
+```js
+import { beginContext, setFlags, getFlags } from 'arc-server/install';
+
+function start(flags, delay) {
+    beginContext(() => {
+        setFlags(flags);
+        wait(delay);
+    }));
+}
+
+function wait(delay) {
+    setTimeout(logFlags, delay);
+}
+
+function logFlags() {
+    // The flags weren't passed here, but we can get them from the context
+    console.log(getFlags());
+}
+
+start(['foo'], 100);
+start(['bar'], 10);
+start(['baz'], 50);
+
+// After 10ms, { bar:true } is logged
+// After 50ms, { baz:true } is logged
+// After 100ms, { foo:true } is logged
+```
+
+Example usage in [`example-arc-server/index.js`](../example-arc-server/index.js)
+
+
 
 ### `arc-server/install`
 
+```js
+import 'arc-server/install';
+```
+
+If you are not bundling your server files with another `arc` plugin, you should `import`/`require` this module near the beginning of your application entry point _before_ loading any modules that need to be adaptable.  
+
 ### `arc-server/proxy`
 
-## Caveats
-
-### One level deep
-
 ```js
-let arc = require('arc-server');
-let helpers = require('./helpers');
-arc.beginContext(() => {
-   // no flags
-   helpers.getFileName() === '/path/to/helpers.js'
-
-   // getFileName is now resolved and no longer adaptive
-   let getFileName = helpers.getFileName;
-   getFileName() === '/path/to/helpers.js';
-
-   // set a flag
-   arc.setFlags(['flagged']);
-
-   // with flag
-   helpers.getFileName() === '/path/to/helpers[flagged].js'
-
-   // still the function prior to setting the new flag
-   getFileName() === '/path/to/helpers.js';
-});
+import AdaptiveProxy from 'arc-server/proxy';
 ```
 
-### Bound functions
+An `AdaptiveProxy` is returned from an `import`/`require` call.  It can be treated as if it were the underlying module (with a few [caveats](#proxy-caveats).  You probably won't need to use this module directly.  
 
-Functions are bound to the adapted object:
+#### `new AdaptiveProxy(matches)`
 
-```js
-let valueOf = adaptiveValue.valueOf;
+- **`matches`**: a [`MatchSet`](../arc-resolver/README.md#matchset) where each value is the loaded module
 
-// works because it is bound
-valueOf();
-
-// this doesn't change, because it was previously bound
-valueOf.bind(newThis);
-```
-
-### `typeof` function
-
-Regardless of the underlying value, an adaptive value will always be `typeof` function:
-
-```js
-typeof adaptiveValue === 'function'
-```
-
-If you need the true type, you can use `valueOf`:
-
-```js
-typeof adaptiveString.valueOf() === 'string'
-```
+#### Proxy caveats
 
 ### Primitive values
 Applies if you require an adaptive file that sets `exports` to a primitive value:
@@ -87,9 +108,30 @@ One notable example is truthiness:
 !!(new Number(0)) === true;
 ```
 
+Another is `typeof`:
+```js
+// typeof is object, regardless of value
+typeof new Boolean(true) === 'object';
+typeof new String('hello') === 'object';
+typeof new Number(10) === 'object';
+```
+
 If you need a true primitive, you can convert an adaptive primitive to its resolved primitive value using `valueOf`:
 
 ```js
 let string = adaptiveString.valueOf();
 ```
 
+### Autobound `Object.prototype` functions
+
+Functions from `Object.prototype` are bound to the adapted object:
+
+```js
+let valueOf = adaptiveValue.valueOf;
+
+// works because it is bound
+valueOf();
+
+// this doesn't change, because it was previously bound
+valueOf.bind(newThis);
+```

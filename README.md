@@ -51,7 +51,7 @@ If both the `mobile` and `android` flags are set, when bundling the css, `style[
 
 - Read how to set flags in the documentation for each [supported environment](#supported-environments).
 
-- Read more about using [flags in filenames](./packages/arc-resolver).
+- Read more about defining [flags in filenames](./packages/arc-resolver/README.md#defining-flags).
 
 ## Use cases
 
