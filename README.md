@@ -16,7 +16,7 @@
      <img src="https://codecov.io/gh/eBay/arc/branch/master/graph/badge.svg" alt="Codecov" />
    </a>
    <a href="https://www.npmjs.com/package/arc-resolver">
-      <img src="https://img.shields.io/npm/v/arc-resolver.svg" alt="npm version"/>
+      <img src="https://img.shields.io/npm/v/arc-resolver/next.svg" alt="npm version"/>
    </a>
    <a href="http://npm-stat.com/charts.html?package=arc-resolver">
       <img src="https://img.shields.io/npm/dm/arc-resolver.svg" alt="downloads"/>
