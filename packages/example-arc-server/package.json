@@ -10,6 +10,6 @@
   "private": true,
   "dependencies": {
     "express": "^4.16.2",
-    "arc-server": "*"
+    "arc-server": "^1.0.0"
   }
 }
