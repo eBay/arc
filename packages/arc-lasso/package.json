@@ -1,13 +1,13 @@
 {
   "name": "arc-lasso",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.0",
   "description": "",
   "main": "index.js",
   "scripts": {},
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "arc-fs": "^1.0.0"
+    "arc-fs": "^2.0.0-alpha.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

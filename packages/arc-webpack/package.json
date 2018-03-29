@@ -1,6 +1,6 @@
 {
   "name": "arc-webpack",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,13 +9,13 @@
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "arc-fs": "^1.0.0"
+    "arc-fs": "^2.0.0-alpha.0"
   },
   "devDependencies": {
-    "arc-server": "^1.0.0",
-    "arc-resolver": "^1.0.0",
     "@babel/core": "^7.0.0-beta.31",
     "@babel/preset-env": "^7.0.0-beta.31",
+    "arc-resolver": "^2.0.0-alpha.0",
+    "arc-server": "^2.0.0-alpha.0",
     "babel-loader": "^8.0.0-beta.0",
     "chai": "^4.1.2",
     "loader-utils": "^1.1.0",
