@@ -35,5 +35,16 @@ module.exports = function AdaptiveReadOnlyFS({ fs = require('fs'), flags } = {})
     };
   });
 
+  let readdirSync = adaptiveFS.readdirSync;
+
+  adaptiveFS.readdirSync = function(...args) {
+    let items = readdirSync(...args);
+    let unique = {};
+    items.forEach(item => {
+      unique[item.replace(/\[.*\]/, '')] = true;
+    });
+    return Object.keys(unique);
+  }
+
   return adaptiveFS;
 };
