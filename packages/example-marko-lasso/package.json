@@ -14,7 +14,7 @@
     "arc-server": "^2.0.0-alpha.0",
     "express": "^4.16.2",
     "express-useragent": "^1.0.12",
-    "lasso": "^3.1.4",
+    "lasso": "^3.2.3",
     "lasso-marko": "^2.4.0",
     "marko": "^4.9.4"
   }

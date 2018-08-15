@@ -9,9 +9,9 @@
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.49",
-    "@babel/core": "^7.0.0-beta.49",
-    "babel-plugin-minify-dead-code-elimination": "^0.2.0",
+    "@babel/cli": "^7.0.0-rc.1",
+    "@babel/core": "^7.0.0-rc.1",
+    "babel-plugin-minify-dead-code-elimination": "^0.4.3",
     "pegjs": "^0.10.0"
   }
 }
