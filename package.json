@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "lerna bootstrap --hoist",
-    "test": "nyc mocha packages/arc-*/test*",
+    "test": "nyc mocha packages/arc-*/test* --timeout=10000",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
