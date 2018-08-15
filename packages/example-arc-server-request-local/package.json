@@ -1,0 +1,16 @@
+{
+  "name": "example-arc-server-request-local",
+  "version": "2.0.0-alpha.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Michael Rawlings <ml.rawlings@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "arc-server": "^2.0.0-alpha.0",
+    "express": "^4.16.2",
+    "request-local": "^1.0.5"
+  }
+}
