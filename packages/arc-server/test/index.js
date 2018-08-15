@@ -7,7 +7,7 @@ let AdaptiveProxy = require('../proxy');
 describe('Context API', () => {
   describe('setFlags', () => {
     it('should throw if you try to set flags outside a context', () => {
-      expect(() => arc.setFlags(['flag'])).to.throw(/context/);
+      expect(() => arc.setFlags(['flag'])).to.throw();
     });
     it('should set a flag object', () => {
       arc.beginContext(() => {
@@ -30,6 +30,18 @@ describe('Context API', () => {
       arc.beginContext(() => {
         expect(() => arc.setFlags([1, 2, 3])).to.throw(/flags/);
       });
+    });
+  });
+  describe('useCustomContext', () => {
+    it('should allow using a custom context', () => {
+      try {
+        arc.useCustomFlagContext(() => ['flag']);
+        expect(arc.getFlags()).to.eql({ flag:true });
+      } finally {
+        // this is global, so we need to reset it
+        // to not affect other tests
+        arc.useCustomFlagContext(false);
+      }
     });
   });
 });

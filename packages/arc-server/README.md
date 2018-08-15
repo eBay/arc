@@ -32,6 +32,7 @@ import { beginContext, setFlags, getFlags } from 'arc-server';
 - `beginContext(fn)`: begins a new `arc` context.  any calls made from `fn` are in this context
 - `setFlags(flags)`: set flags for the current context
 - `getFlags()`: get flags for the current context
+- `useCustomFlagContext(fn)`: allows using a custom context to store flags.  `fn` is a function that should return the current flagset from the custom context. when using a custom context, `beginContext` and `setFlags` should not be used.
 
 #### Example
 
