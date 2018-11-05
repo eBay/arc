@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "postinstall": "lerna bootstrap --hoist",
+    "postinstall": "lerna bootstrap --hoist --no-ci",
     "test": "nyc mocha packages/arc-*/test* --timeout=10000",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
