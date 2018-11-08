@@ -18,7 +18,7 @@ exports.setFlags = (flags) => {
     flagset.set('flags', Object.assign({}, flagset.get('flags'), normalizeFlags(flags)));
 };
 
-exports.getFlags = () => customFlagGetter ? normalizeFlags(customFlagGetter()) : flagset.get('flags');
+exports.getFlags = () => customFlagGetter ? normalizeFlags(customFlagGetter()) : flagset && flagset.get('flags');
 
 function normalizeFlags(flags) {
     if(Array.isArray(flags)) {

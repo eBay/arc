@@ -6,6 +6,20 @@ let AdaptiveProxy = require('../proxy');
 
 describe('Context API', () => {
   describe('setFlags', () => {
+    it('should return undefined before any context', () => {
+      // this test must run first
+      expect(arc.getFlags()).to.equal(undefined);
+    });
+    it('should return empty object if no flags are set', () => {
+      arc.beginContext(() => {
+        expect(arc.getFlags()).to.eql({});
+      });
+    });
+    it('should return undefined outside a context', () => {
+      expect(arc.getFlags()).to.equal(undefined);
+    });
+  });
+  describe('setFlags', () => {
     it('should throw if you try to set flags outside a context', () => {
       expect(() => arc.setFlags(['flag'])).to.throw();
     });
