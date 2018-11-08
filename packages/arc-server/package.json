@@ -1,13 +1,13 @@
 {
   "name": "arc-server",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "",
   "main": "index.js",
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "arc-fs": "^2.0.0-alpha.1",
-    "arc-resolver": "^2.0.0-alpha.1",
+    "arc-fs": "^2.0.0-alpha.2",
+    "arc-resolver": "^2.0.0-alpha.2",
     "cls-hooked": "^4.2.2"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "arc-resolver",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "arc-flag-parser": "^2.0.0-alpha.1",
+    "arc-flag-parser": "^2.0.0-alpha.2",
     "cachedfs": "^0.3.3"
   }
 }
