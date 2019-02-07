@@ -1,53 +1,34 @@
-let AdaptiveFS = require('arc-fs');
-let Module = require('module');
-let resolve = require('resolve');
-let path = require('path');
-let fs = require('fs');
-let AdaptiveProxy = require('./proxy');
-let arc = require('./index');
-let afs = new AdaptiveFS();
-let _require = Module.prototype.require;
-let proxyCache = {};
+const AdaptiveFS = require('arc-fs');
+const Module = require('module');
+const resolve = require('resolve');
+const path = require('path');
+const AdaptiveProxy = require('./proxy');
+const afs = new AdaptiveFS();
+const proxyCache = Object.create(null);
 
+Module.prototype._originalRequire = Module.prototype.require;
 Module.prototype.require = function(request) {
   let resolvedPath;
-  let basedir = this.filename
-    ? path.dirname(this.filename)
-    : /* istanbul ignore next: fallback for node repl */ process.cwd();
-  let extensions = Object.keys(require.extensions);
-  
 
   if (isCoreModule(request)) {
-    return _require(request);
+    return this._originalRequire(request);
   }
 
   try {
-    resolvedPath = resolve.sync(request, { basedir, extensions });
-  } catch (e) {
-    resolvedPath = resolve.sync(request, {
-      basedir,
-      extensions,
-      readFileSync: afs.readFileSync,
-      isFile: file => {
-        try {
-          return afs.statSync(file).isFile();
-        } catch (e) {
-          return false;
-        }
-      }
-    });
+    resolvedPath = resolveCached(request, this);
+  } catch(e) {
+    return this._originalRequire(request);
   }
 
-  let isAdaptive = afs.isAdaptiveSync(resolvedPath);
-  let proxy = proxyCache[resolvedPath];
+  const isAdaptive = afs.isAdaptiveSync(resolvedPath);
 
-  if (isAdaptive && !proxy) {
-    proxy = proxyCache[resolvedPath] = new AdaptiveProxy(
-      afs.getMatchesSync(resolvedPath).map(path => _require(path))
+  if (isAdaptive) {
+    return proxyCache[resolvedPath] = proxyCache[resolvedPath] || new AdaptiveProxy(
+      afs.getMatchesSync(resolvedPath).map(path => this._originalRequire(path))
     );
   }
 
-  return isAdaptive ? proxy : _require(resolvedPath);
+  return this._originalRequire(request);
 };
 
 let coreModules;
@@ -61,4 +42,33 @@ function isCoreModule(moduleName) {
     );
   }
   return coreModules[moduleName];
+}
+
+let resolveCache = Object.create(null);
+
+function resolveCached(request, module) {
+  const basedir = module.filename
+    ? path.dirname(module.filename)
+    : /* istanbul ignore next: fallback for node repl */ process.cwd();
+  const extensions = Object.keys(require.extensions);
+  const cacheKey = request + '|' + basedir;
+  
+  let resolvedPath;
+  
+  if (!(resolvedPath = resolveCache[cacheKey])) {
+    resolvedPath = resolveCache[cacheKey] = resolve.sync(request, {
+      basedir,
+      extensions,
+      readFileSync: afs.readFileSync,
+      isFile: file => {
+        try {
+          return afs.statSync(file).isFile();
+        } catch (e) {
+          return false;
+        }
+      }
+    });
+  }
+  
+  return resolvedPath;
 }

@@ -65,6 +65,10 @@ describe('AdaptiveRequireHook', () => {
     it('should allow node native modules to pass through', () => {
       require('http');
     });
+
+    it('should throw a missing module error when a module does not exist', () => {
+      expect(() => require('./missing')).to.throw("Cannot find module './missing'");
+    })
   });
 
   describe('directories', () => {
