@@ -26,22 +26,20 @@ The `arc-server` api is split into 3 submodules:
 ### `arc-server`
 
 ```js
-import { beginContext, setFlags, getFlags } from 'arc-server';
+import { setFlagsForContext, getFlags } from 'arc-server';
 ```
 
-- `beginContext(fn)`: begins a new `arc` context.  any calls made from `fn` are in this context
-- `setFlags(flags)`: set flags for the current context
+- `setFlagsForContext(flags, fn)`: begins a new context.  any calls made from `fn` can use `getFlags` to get the passed `flags`
 - `getFlags()`: get flags for the current context
-- `useCustomFlagContext(fn)`: allows using a custom context to store flags.  `fn` is a function that should return the current flagset from the custom context. when using a custom context, `beginContext` and `setFlags` should not be used.
+- `useCustomFlagContext(fn)`: allows using a custom context to store flags.  `fn` is a function that should return the current flagset from the custom context. when using a custom context, `setFlagsForContext` should not be used.
 
 #### Example
 
 ```js
-import { beginContext, setFlags, getFlags } from 'arc-server/install';
+import { setFlagsForContext, getFlags } from 'arc-server/install';
 
 function start(flags, delay) {
-    beginContext(() => {
-        setFlags(flags);
+    setFlagsForContext(flags, () => {
         wait(delay);
     }));
 }
@@ -65,8 +63,6 @@ start(['baz'], 50);
 ```
 
 Example usage in [`example-arc-server/index.js`](../example-arc-server/index.js)
-
-
 
 ### `arc-server/install`
 

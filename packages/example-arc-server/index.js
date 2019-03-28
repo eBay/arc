@@ -6,14 +6,11 @@ let template = require('./template');
 let app = express();
 
 app.use((req, res, next) => {
-  arc.beginContext(next);
+  const flags = req.query.hasOwnProperty('adapt') ? ['adapt'] : [];
+  arc.setFlagsForContext(flags, next);
 });
 
 app.use((req, res, next) => {
-  if (req.query.hasOwnProperty('adapt')) {
-    arc.setFlags(['adapt']);
-  }
-
   // async boundary
   setTimeout(next, 50);
 });

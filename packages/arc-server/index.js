@@ -1,27 +1,46 @@
-let cls = require('cls-hooked');
+let { createHook, executionAsyncId } = require('async_hooks');
+let contexts = new Map();
 let customFlagGetter;
-let flagset;
+let hook;
 
-exports.useCustomFlagContext = (fn) => {
+exports.useCustomFlagGetter = (fn) => {
     customFlagGetter = fn;
 };
 
-exports.beginContext = (fn) => {
-    flagset = flagset || cls.createNamespace('arc-flagset');
-    flagset.run(() => {
-        flagset.set('flags', {});
+exports.setFlagsForContext = (flags, fn) => {
+    if (!hook) {
+        hook = createHook({ 
+            init(asyncId, type, triggerAsyncId) {
+                const context = contexts.get(triggerAsyncId);
+                if (context) {
+                    contexts.set(asyncId, context);
+                }
+            },
+            destroy(asyncId) {
+                contexts.delete(asyncId);
+            }
+        })
+        hook.enable();
+    }
+
+    const id = executionAsyncId();
+    const oldValue = contexts.get(id);
+    contexts.set(id, normalizeFlags(flags));
+    try {
         fn();
-    });
+    } finally {
+        if (oldValue === undefined) {
+            contexts.delete(id);
+        } else {
+            contexts.set(id, oldValue);
+        }
+    }
 };
 
-exports.setFlags = (flags) => {
-    flagset.set('flags', Object.assign({}, flagset.get('flags'), normalizeFlags(flags)));
-};
-
-exports.getFlags = () => customFlagGetter ? normalizeFlags(customFlagGetter()) : flagset && flagset.get('flags');
+exports.getFlags = () => customFlagGetter ? normalizeFlags(customFlagGetter()) : contexts.get(executionAsyncId());
 
 function normalizeFlags(flags) {
-    if(Array.isArray(flags)) {
+    if (Array.isArray(flags)) {
         return flags.reduce((object, flag) => {
             if (typeof flag !== 'string') {
                 throw new Error('when passing an array of flags, all flags must be strings')

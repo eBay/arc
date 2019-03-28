@@ -26,19 +26,16 @@ app.use(lassoMiddleware.serveStatic());
 app.use(useragent.express());
 
 app.use((req, res, next) => {
-    arc.beginContext(() => {
-        let ua = req.useragent;
-        let flags = {
-            mobile: ua.isMobile,
-            desktop: ua.isDesktop,
-            microsoft: /microsoft|windows/i.test(ua.platform),
-            google: /google|android/i.test(ua.platform),
-            apple: /apple|ip(hone|ad|od)|mac/i.test(ua.platform)
-        }
-        arc.setFlags(flags);
-        res.locals.flags = Object.keys(flags).filter(flag => flags[flag]);
-        next();
-    });
+    let ua = req.useragent;
+    let flags = {
+        mobile: ua.isMobile,
+        desktop: ua.isDesktop,
+        microsoft: /microsoft|windows/i.test(ua.platform),
+        google: /google|android/i.test(ua.platform),
+        apple: /apple|ip(hone|ad|od)|mac/i.test(ua.platform)
+    }
+    res.locals.flags = Object.keys(flags).filter(flag => flags[flag]);
+    arc.setFlagsForContext(flags, next);
 });
 
 app.get('/', (req, res) => {
