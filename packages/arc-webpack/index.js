@@ -11,43 +11,26 @@ class AdaptivePlugin {
     this.proxy = proxy || false;
   }
   apply(compiler) {
-    compiler.plugin('normal-module-factory', nmf => {
-      let resolver = compiler.resolvers.normal;
-      let fs = resolver.fileSystem;
-      let afs = new AdaptiveFS({ fs, flags: this.flags });
-      resolver.fileSystem = afs;
-      if (this.proxy) {
-          nmf.plugin('after-resolve', (data, callback) => {
-             if(afs.isAdaptiveSync(data.userRequest)) {
-               let matches = afs.getMatchesSync(data.userRequest);
-               data.loaders = [{
-                 options: {
-                   matches
-                 },
-                 loader: proxyLoaderPath
-               }];
-               data.resource = __filename;
-             }
-
-             callback(null, data);
-          });
-      } else {
-          resolver.plugin('before-existing-file', (request, callback) => {
-              let path = afs.resolveSync(request.path);
-              callback(null, Object.assign({}, request, { path }));
-          });
-      }
-    });
-    // compiler.plugin('context-module-factory', cmf => {
-    //   let context = compiler.resolvers.context;
-    //   let fs = context.fileSystem;
-    //   let afs = new AdaptiveFS({ fs, flags:this.flags });
-    //   context.fileSystem = afs;
-    //   context.plugin('before-existing-file', (request, callback) => {
-    //       let path = afs.resolveSync(request.path);
-    //       callback(null, Object.assign({}, request, { path }));
-    //   });
-    // });
+    let fs = compiler.inputFileSystem;
+    let afs = new AdaptiveFS({ fs, flags: this.flags });
+    compiler.inputFileSystem = afs;
+    if (this.proxy) {
+      compiler.hooks.compilation.tap("arc", compilation => {
+        compilation.hooks.normalModuleLoader.tap("arc", (loaderContext, module) => {
+          if(module.issuer && module.issuer.resource === __filename) return;
+          if(afs.isAdaptiveSync(module.userRequest)) {
+            let matches = afs.getMatchesSync(module.userRequest);
+            module.loaders = [{
+              options: {
+                matches
+              },
+              loader: proxyLoaderPath
+            }];
+            module.resource = __filename;
+          }
+        });
+      });
+    }
   }
 }
 
