@@ -15,18 +15,19 @@ class AdaptivePlugin {
     let afs = new AdaptiveFS({ fs, flags: this.flags });
     compiler.inputFileSystem = afs;
     if (this.proxy) {
-      compiler.hooks.compilation.tap("arc", compilation => {
-        compilation.hooks.normalModuleLoader.tap("arc", (loaderContext, module) => {
-          if(module.issuer && module.issuer.resource === __filename) return;
-          if(afs.isAdaptiveSync(module.userRequest)) {
-            let matches = afs.getMatchesSync(module.userRequest);
-            module.loaders = [{
-              options: {
-                matches
-              },
-              loader: proxyLoaderPath
-            }];
-            module.resource = __filename;
+      compiler.hooks.normalModuleFactory.tap("arc", normalModuleFactory => {
+        normalModuleFactory.hooks.afterResolve.tap("arc", data => {
+          if (data.resourceResolveData.context.issuer !== __filename) {
+            if (afs.isAdaptiveSync(data.resource)) {
+              let matches = afs.getMatchesSync(data.resource);
+              data.loaders = [{
+                options: {
+                  matches
+                },
+                loader: proxyLoaderPath
+              }];
+              data.request = data.resource = __filename + '?proxy=' + data.resource;
+            }
           }
         });
       });

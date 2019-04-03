@@ -18,7 +18,7 @@ module.exports = function(source) {
     let MatchSet = require('arc-resolver').MatchSet;
     let matches = new MatchSet([${
       Array.from(matches).map(({ value, flags }) => {
-        return `{ value:require(${js(value+'?no-proxy')}), flags:${js(flags)}}`;
+        return `{ value:require(${js(value)}), flags:${js(flags)}}`;
       }).join(',')
     }]);
 
