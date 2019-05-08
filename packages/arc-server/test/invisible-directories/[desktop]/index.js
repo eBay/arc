@@ -1,0 +1,1 @@
+exports.test = () => 'component/desktop';
