@@ -56,6 +56,16 @@ class Resolver {
     return matches;
   }
   getDirMatchesSync(dir, request, path) {
+    const lookup = this.getDirLookupSync(dir, path);
+    const matches = lookup[request] || lookup[''];
+
+    if (!matches) {
+      throw new Error(path.resolve(dir, request) + ' does not exist');
+    }
+
+    return matches;
+  }
+  getDirLookupSync(dir, path) {
     let fs = this.fs;
     let cache = this.dirCache[dir];
 
@@ -69,11 +79,24 @@ class Resolver {
         let match = flaggedPathRegex.exec(entryName);
         if (match) {
           let canonicalName = entryName.replace(match[0], '');
-          let entryCache = (cache[canonicalName] = cache[canonicalName] || []);
           let flagsets = parseFlags(match[1]);
-          flagsets.forEach(flags =>
-            entryCache.push({ flags, value: entryPath })
-          );
+          if (canonicalName === '') {
+            let childLookup = this.getDirLookupSync(entryPath, path);
+            Object.keys(childLookup).forEach(childName => {
+              let childMatches = childLookup[childName];
+              let entryCache = (cache[childName] = cache[childName] || []);
+              childMatches.forEach(childMatch => {
+                flagsets.forEach(flagset => {
+                  entryCache.push({ flags: flagset.concat(childMatch.flags), value: childMatch.value });
+                });
+              });
+            });
+          } else {
+            let entryCache = (cache[canonicalName] = cache[canonicalName] || []);
+            flagsets.forEach(flags =>
+              entryCache.push({ flags, value: entryPath })
+            );
+          }
         } else {
           let entryCache = (cache[entryName] = cache[entryName] || []);
           entryCache.push({ flags: [], value: entryPath });
@@ -87,13 +110,7 @@ class Resolver {
       this.dirCache[dir] = cache;
     }
 
-    let matches = cache[request];
-
-    if (!matches) {
-      throw new Error(path.resolve(dir, request) + ' does not exist');
-    }
-
-    return matches;
+    return cache;
   }
   resolveSync(filepath, flags) {
     if (typeof filepath !== 'string') {

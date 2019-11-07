@@ -53,6 +53,42 @@ describe('Resolver', () => {
       ]);
     });
 
+    it('should resolve multiple levels invisible dirs', () => {
+      // setup
+      let fs = new MemoryFS();
+      let resolver = new Resolver(fs);
+      fs.mkdirpSync('/locales/[en]');
+      fs.mkdirpSync('/locales/[US]/[en]');
+      fs.mkdirpSync('/locales/[CA]/[en]');
+      fs.mkdirpSync('/locales/[CA]/[fr]');
+      fs.writeFileSync('/locales/[en]/sample.properties', 'contents');
+      fs.writeFileSync('/locales/[US]/[en]/sample.properties', 'contents');
+      fs.writeFileSync('/locales/[CA]/[en]/sample.properties', 'contents');
+      fs.writeFileSync('/locales/[CA]/[fr]/sample.properties', 'contents');
+
+      //test
+      let filepath = '/locales/sample.properties';
+      let matches = resolver.getMatchesSync(filepath);
+      expect(matches.raw).to.eql([
+        {
+          flags: ['US', 'en'],
+          value: '/locales/[US]/[en]/sample.properties'
+        },
+        {
+          flags: ['CA', 'en'],
+          value: '/locales/[CA]/[en]/sample.properties'
+        },
+        {
+          flags: ['CA', 'fr'],
+          value: '/locales/[CA]/[fr]/sample.properties'
+        },
+        {
+          flags: ['en'],
+          value: '/locales/[en]/sample.properties'
+        }
+      ]);
+    });
+
     it('should cache for better perf', () => {
       // setup
       let fs = new MemoryFS();

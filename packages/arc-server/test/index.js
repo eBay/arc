@@ -128,6 +128,22 @@ describe('AdaptiveRequireHook', () => {
     });
   });
 
+  describe('invisible directories', () => {
+    it('should resolve adaptive files', function() {
+      arc.setFlagsForContext(['desktop'], () => {
+        let proxy = require('./invisible-directories');
+        expect(proxy.test()).to.equal('component/desktop');
+      });
+    });
+
+    it('should resolve adaptive files', function() {
+      arc.setFlagsForContext(['mobile', 'ios'], () => {
+        let proxy = require('./invisible-directories');
+        expect(proxy.test()).to.equal('component/mobile.ios');
+      });
+    });
+  });
+
   describe('primitives', () => {
     it('should resolve adaptive files', function() {
       let primitive = require('./primitives');
