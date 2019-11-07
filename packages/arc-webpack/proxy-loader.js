@@ -13,12 +13,13 @@ try {
 module.exports = function(source) {
   let options = loaderUtils.getOptions(this);
   let matches = options.matches;
+  let query = options.query || '';
   let code = `
     let Proxy = require('arc-server/proxy');
     let MatchSet = require('arc-resolver').MatchSet;
     let matches = new MatchSet([${
       Array.from(matches).map(({ value, flags }) => {
-        return `{ value:require(${js(value)}), flags:${js(flags)}}`;
+        return `{ value:require(${js(value + query)}), flags:${js(flags)}}`;
       }).join(',')
     }]);
 
