@@ -1,0 +1,21 @@
+{
+  "name": "arc-rollup",
+  "version": "2.0.0",
+  "description": "Resolve adaptive modules when using Rollup",
+  "main": "index.js",
+  "author": "Michael Rawlings <ml.rawlings@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "arc-fs": "^2.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.0.0-rc.1",
+    "@babel/preset-env": "^7.0.0-rc.1",
+    "arc-resolver": "^2.0.0",
+    "arc-server": "^2.0.0",
+    "builtin-modules": "^3.1.0",
+    "rollup": "^1.27.2",
+    "rollup-plugin-commonjs": "^10.1.0"
+  }
+}
