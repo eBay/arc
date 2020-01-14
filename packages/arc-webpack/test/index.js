@@ -22,10 +22,19 @@ describe('AdaptivePlugin', () => {
     }
   ].forEach(({ description, entry }) => {
     describe(description, () => {
-      it('should work', async () => {
+      it('should bundle only the adapted files (mobile)', async () => {
         let compiler = webpack({
           mode: 'none',
           entry: entry,
+          module: {
+            rules: [{
+              test: /\.css$/,
+              use: [
+                'style-loader',
+                'css-loader'
+              ]
+            }]
+          },
           output: { path: '/', filename: 'bundle.js' },
           plugins: [new AdaptivePlugin({ flags: { mobile: true } })]
         });
@@ -34,11 +43,22 @@ describe('AdaptivePlugin', () => {
         let bundle = fs.readFileSync('/bundle.js', 'utf-8');
         expect(bundle).to.not.include(`console.log('desktop')`);
         expect(bundle).to.include(`console.log('mobile')`);
+        expect(bundle).to.not.include(`content: 'desktop';`);
+        expect(bundle).to.include(`content: 'mobile';`);
       });
-      it('should work', async () => {
+      it('should bundle only the adapted files (desktop)', async () => {
         let compiler = webpack({
           mode: 'none',
           entry: entry,
+          module: {
+            rules: [{
+              test: /\.css$/,
+              use: [
+                "style-loader", 
+                "css-loader",
+              ]
+            }]
+          },
           output: { path: '/', filename: 'bundle.js' },
           plugins: [new AdaptivePlugin({ flags: { desktop: true } })]
         });
@@ -47,6 +67,8 @@ describe('AdaptivePlugin', () => {
         let bundle = fs.readFileSync('/bundle.js', 'utf-8');
         expect(bundle).to.include(`console.log('desktop')`);
         expect(bundle).to.not.include(`console.log('mobile')`);
+        expect(bundle).to.include(`content: 'desktop';`);
+        expect(bundle).to.not.include(`content: 'mobile';`);
       });
       it('should bundle proxies for the server', async () => {
         let compiler = webpack({

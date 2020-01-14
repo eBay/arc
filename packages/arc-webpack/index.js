@@ -63,7 +63,11 @@ class AdaptivePlugin {
           }
         } else {
           try {
-            data.request = data.resource = afs.resolveSync(resource) + query;
+            const resolvedResource = afs.resolveSync(resource);
+            if (resolvedResource !== resource) {
+              data.resource = resolvedResource + query;
+              data.request = data.request.replace(resource, resolvedResource);
+            }
           } catch(e) {
             // An error may be thrown if the resource cannot be found.
             // However this hook would not have been called if the resource
