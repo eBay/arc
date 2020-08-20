@@ -177,7 +177,7 @@ describe('AdaptiveRequireHook', () => {
       let util = require('util');
       let adaptiveValue = require('./primitives');
       arc.setFlagsForContext([], () => {
-        expect(util.inspect(adaptiveValue)).to.equal("'hello'");
+        expect(util.inspect(adaptiveValue)).to.include("'hello'");
       });
     });
 
