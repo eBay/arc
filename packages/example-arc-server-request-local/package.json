@@ -1,6 +1,6 @@
 {
   "name": "example-arc-server-request-local",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -9,7 +9,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "arc-server": "^2.0.0",
+    "arc-server": "^2.0.2",
     "express": "^4.16.2",
     "request-local": "^1.0.5"
   }
