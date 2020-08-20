@@ -36,7 +36,7 @@ class AdaptivePlugin {
         const query = (/\?.*$/.exec(data.resource) || '')[0] || '';
         const resource = data.resource.slice(0, query ? -query.length : undefined);
         if (this.proxy) {
-          if (data.resourceResolveData.context.issuer !== __filename) {
+          if (data.resourceResolveData.context.issuer !== data.resource) {
             let isAdaptive;
             try {
               isAdaptive = afs.isAdaptiveSync(resource);
@@ -58,7 +58,7 @@ class AdaptivePlugin {
                 },
                 loader: proxyLoaderPath
               }];
-              data.request = data.resource = __filename + '?proxy=' + data.resource;
+              data.request = data.resource + '?arc-proxy';
             }
           }
         } else {
