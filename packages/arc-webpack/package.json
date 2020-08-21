@@ -1,6 +1,6 @@
 {
   "name": "arc-webpack",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "",
   "main": "index.js",
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
@@ -12,7 +12,7 @@
     "@babel/core": "^7.0.0-rc.1",
     "@babel/preset-env": "^7.0.0-rc.1",
     "arc-resolver": "^2.0.0",
-    "arc-server": "^2.0.2",
+    "arc-server": "^2.0.3",
     "babel-loader": "^8.0.0-beta.4",
     "css-loader": "^3.4.2",
     "loader-utils": "^1.1.0",
