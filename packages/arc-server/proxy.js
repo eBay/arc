@@ -51,6 +51,16 @@ module.exports = function AdaptiveProxy(matches, path = []) {
     }
   };
 
+  if (path.length === 0) {
+    const { get } = handler;
+    handler.get = (_target, property, receiver) => {
+      if (property === "__esModule") {
+        return _target[property];
+      }
+      return get(_target, property, receiver);
+    }
+  }
+
   if (defaultTarget == null) {
     return defaultTarget;
   } else {
