@@ -33,6 +33,10 @@ class AdaptivePlugin {
 
     compiler.hooks.normalModuleFactory.tap('arc', normalModuleFactory => {
       normalModuleFactory.hooks.afterResolve.tap('arc', data => {
+        if (!data.resource) {
+          return;
+        }
+
         const query = (/\?.*$/.exec(data.resource) || '')[0] || '';
         const resource = data.resource.slice(0, query ? -query.length : undefined);
         if (this.proxy) {
