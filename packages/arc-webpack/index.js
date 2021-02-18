@@ -31,57 +31,71 @@ class AdaptivePlugin {
       }
     });
 
-    compiler.hooks.normalModuleFactory.tap('arc', normalModuleFactory => {
-      normalModuleFactory.hooks.afterResolve.tap('arc', data => {
-        if (!data.resource) {
-          return;
-        }
+    if (this.proxy) {
+      compiler.hooks.normalModuleFactory.tap('arc', normalModuleFactory => {
+        normalModuleFactory.hooks.afterResolve.tap('arc', data => {
+          let resource =
+            (data.createData && data.createData.resource) || data.resource;
+          if (!resource) {
+            return;
+          }
 
-        const query = (/\?.*$/.exec(data.resource) || '')[0] || '';
-        const resource = data.resource.slice(0, query ? -query.length : undefined);
-        if (this.proxy) {
-          if (data.resourceResolveData.context.issuer !== data.resource) {
+          const contextInfo =
+            data.contextInfo || data.resourceResolveData.context;
+          const query = (/\?.*$/.exec(resource) || '')[0] || '';
+          resource = resource.slice(0, query ? -query.length : undefined);
+
+          if (contextInfo.issuer !== resource) {
             let isAdaptive;
             try {
               isAdaptive = afs.isAdaptiveSync(resource);
-            } catch(e) {
+            } catch (e) {
               // An error may be thrown if the resource cannot be found.
               // However this hook would not have been called if the resource
               // could not have been resolved.  We'll assume some other plugin
-              // is making this resource available to webpack and that it's not 
+              // is making this resource available to webpack and that it's not
               // adaptive.
               isAdaptive = false;
             }
 
             if (isAdaptive) {
-              let matches = afs.getMatchesSync(resource);
-              data.loaders = [{
-                options: {
-                  matches,
-                  query
-                },
-                loader: proxyLoaderPath
-              }];
-              data.request = data.resource + '?arc-proxy';
+              const matches = afs.getMatchesSync(resource);
+
+              (data.createData || data).loaders = [
+                {
+                  options: {
+                    matches,
+                    query
+                  },
+                  loader: proxyLoaderPath
+                }
+              ];
+
+              data.request = resource + '?arc-proxy';
+              if (data.createData) {
+                data.createData.request = resource + '?arc-proxy';
+              }
             }
           }
-        } else {
-          try {
-            const resolvedResource = afs.resolveSync(resource);
-            if (resolvedResource !== resource) {
-              data.resource = resolvedResource + query;
-              data.request = data.request.replace(resource, resolvedResource);
-            }
-          } catch(e) {
-            // An error may be thrown if the resource cannot be found.
-            // However this hook would not have been called if the resource
-            // could not have been resolved.  We'll assume some other plugin
-            // is making this resource available to webpack and that it's not 
-            // adaptive.
-          }
-        }
+        });
       });
-    });
+    } else {
+      compiler.resolverFactory.hooks.resolver
+        .for('normal')
+        .tap('arc', resolver => {
+          resolver.hooks.result.tap('arc', req => {
+            try {
+              req.path = afs.resolveSync(req.path);
+            } catch (e) {
+              // An error may be thrown if the resource cannot be found.
+              // However this hook would not have been called if the resource
+              // could not have been resolved.  We'll assume some other plugin
+              // is making this resource available to webpack and that it's not
+              // adaptive.
+            }
+          });
+        });
+    }
   }
 }
 
