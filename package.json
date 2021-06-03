@@ -17,13 +17,14 @@
     "lerna": "^3.0.5",
     "memory-fs": "^0.4.1",
     "mocha": "^5.2.0",
-    "nyc": "^13.3.0"
+    "nyc": "^15.1.0"
   },
   "nyc": {
     "exclude": [
       "**/test.js",
       "**/test/**",
       "**/coverage/**",
+      "**/.cache/**",
       "packages/example-*"
     ],
     "cache": true,
