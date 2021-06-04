@@ -145,6 +145,7 @@ Please refer to the linked documentation for using `arc` in each environment:
 - Node 8+ ([`arc-server`](./packages/arc-server))
 - Webpack 4+ ([`arc-webpack`](./packages/arc-webpack))
 - Lasso 3+ ([`arc-lasso`](./packages/arc-lasso))
+- Rollup 1+ ([`arc-rollup`](./packages/arc-rollup))
 
 ## Additional resources
 
