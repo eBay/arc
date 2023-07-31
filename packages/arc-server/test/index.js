@@ -107,6 +107,10 @@ describe('AdaptiveRequireHook', () => {
       require('http');
     });
 
+    it('should allow node native modules with node: prefix to pass through', () => {
+      require('node:events');
+    });
+
     it('should throw a missing module error when a module does not exist', () => {
       expect(() => require('./missing')).to.throw("Cannot find module './missing'");
     })

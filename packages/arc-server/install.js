@@ -33,7 +33,11 @@ Module.prototype.require = function(request) {
 
 let coreModules;
 
-function isCoreModule(moduleName) {
+const isCoreModule = Module.isBuiltin || (moduleName => {
+  if (moduleName.startsWith('node:')) {
+    return true;
+  }
+
   if (!coreModules) {
     let coreModulesNames = Object.keys(process.binding('natives'));
     coreModules = coreModulesNames.reduce(
@@ -42,7 +46,7 @@ function isCoreModule(moduleName) {
     );
   }
   return coreModules[moduleName];
-}
+});
 
 let resolveCache = Object.create(null);
 
