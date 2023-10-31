@@ -11,7 +11,7 @@ describe('Context API', () => {
       expect(arc.getFlags()).to.equal(undefined);
     });
     it('should return empty object if no flags are set', () => {
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(arc.getFlags()).to.eql({});
       });
     });
@@ -23,7 +23,7 @@ describe('Context API', () => {
         callback.flags = arc.getFlags();
       }
 
-      arc.setFlagsForContext(['test'], () => {
+      arc.withFlags({ test:true }, () => {
         setTimeout(callback, 25);
       });
 
@@ -36,9 +36,9 @@ describe('Context API', () => {
       }, 50)
     });
     it('should allow nesting flag contexts', () => {
-      arc.setFlagsForContext(['foo'], () => {
+      arc.withFlags({ foo:true }, () => {
         expect(arc.getFlags()).to.eql({ foo:true });
-        arc.setFlagsForContext(['bar'], () => {
+        arc.withFlags({ bar:true }, () => {
           expect(arc.getFlags()).to.eql({ bar:true });
         });
         expect(arc.getFlags()).to.eql({ foo:true });
@@ -47,7 +47,7 @@ describe('Context API', () => {
     it('should reset context even when error is thrown', () => {
       expect(arc.getFlags()).to.eql(undefined);
       expect(() => {
-        arc.setFlagsForContext(['foo'], () => {
+        arc.withFlags({ foo:true }, () => {
           expect(arc.getFlags()).to.eql({ foo:true });
           throw new Error('TEST ERROR');
         });
@@ -55,48 +55,11 @@ describe('Context API', () => {
       expect(arc.getFlags()).to.eql(undefined);
     });
   });
-  describe('setFlagsForContext', () => {
+  describe('withFlags', () => {
     it('should set a flag object', () => {
-      arc.setFlagsForContext({ flag: true }, () => {
-        expect(arc.getFlags()).to.eql({ flag: true });
-      });
-    });
-    it('should convert an array to an object', () => {
-      arc.setFlagsForContext(['flag'], () => {
-        expect(arc.getFlags()).to.eql({ flag: true });
-      });
-    });
-    it("should throw if you don't pass an array or object", () => {
-      expect(() => 
-        arc.setFlagsForContext('flag', () => {})
-      ).to.throw(/flags/);
-    });
-    it('should throw if pass an array of non-strings', () => {
-        expect(() =>
-          arc.setFlagsForContext([1, 2, 3], () => {})
-        ).to.throw(/flags/);
-    });
-    it('should throw if pass only function', () => {
-        expect(() =>
-          arc.setFlagsForContext(() => {})
-        ).to.throw(/flags/);
-    });
-    it('should throw if pass only flags', () => {
-        expect(() =>
-          arc.setFlagsForContext([1, 2, 3])
-        ).to.throw();
-    });
-  });
-  describe('useCustomFlagGetter', () => {
-    it('should allow using a custom getter', () => {
-      try {
-        arc.useCustomFlagGetter(() => ['flag']);
+      arc.withFlags({ flag:true }, () => {
         expect(arc.getFlags()).to.eql({ flag:true });
-      } finally {
-        // this is global, so we need to reset it
-        // to not affect other tests
-        arc.useCustomFlagGetter(false);
-      }
+      });
     });
   });
 });
@@ -118,14 +81,14 @@ describe('AdaptiveRequireHook', () => {
 
   describe('directories', () => {
     it('should resolve adaptive files', function() {
-      arc.setFlagsForContext(['desktop'], () => {
+      arc.withFlags({ desktop:true }, () => {
         let proxy = require('./directories');
         expect(proxy.test()).to.equal('component/desktop');
       });
     });
 
     it('should resolve adaptive files', function() {
-      arc.setFlagsForContext(['mobile', 'ios'], () => {
+      arc.withFlags({ mobile:true, ios:true }, () => {
         let proxy = require('./directories');
         expect(proxy.test()).to.equal('component/mobile.ios');
       });
@@ -134,14 +97,14 @@ describe('AdaptiveRequireHook', () => {
 
   describe('invisible directories', () => {
     it('should resolve adaptive files', function() {
-      arc.setFlagsForContext(['desktop'], () => {
+      arc.withFlags({ desktop:true }, () => {
         let proxy = require('./invisible-directories');
         expect(proxy.test()).to.equal('component/desktop');
       });
     });
 
     it('should resolve adaptive files', function() {
-      arc.setFlagsForContext(['mobile', 'ios'], () => {
+      arc.withFlags({ mobile:true, ios:true }, () => {
         let proxy = require('./invisible-directories');
         expect(proxy.test()).to.equal('component/mobile.ios');
       });
@@ -151,28 +114,28 @@ describe('AdaptiveRequireHook', () => {
   describe('primitives', () => {
     it('should resolve adaptive files', function() {
       let primitive = require('./primitives');
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(primitive.valueOf()).to.equal('hello');
       });
     });
 
     it('should resolve adaptive files', function() {
       let primitive = require('./primitives');
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(primitive + '').to.equal('hello');
       });
     });
 
     it('should resolve adaptive files', function() {
       let primitive = require('./primitives');
-      arc.setFlagsForContext(['number'], () => {
+      arc.withFlags({ number:true }, () => {
         expect(primitive.valueOf()).to.equal(42);
       });
     });
 
     it('should resolve adaptive files', function() {
       let primitive = require('./primitives');
-      arc.setFlagsForContext(['number'], () => {
+      arc.withFlags({ number:true }, () => {
         expect(primitive + 0).to.equal(42);
       });
     });
@@ -180,21 +143,20 @@ describe('AdaptiveRequireHook', () => {
     it('should allow inspecting - and therefore logging', function() {
       let util = require('util');
       let adaptiveValue = require('./primitives');
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(util.inspect(adaptiveValue)).to.include("'hello'");
       });
     });
 
     it('should instanceof', function() {
-      let util = require('util');
       let adaptiveValue = require('./primitives');
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(adaptiveValue instanceof String).to.equal(true);
       });
-      arc.setFlagsForContext(['number'], () => {
+      arc.withFlags({ number:true }, () => {
         expect(adaptiveValue instanceof Number).to.equal(true);
       });
-      arc.setFlagsForContext(['boolean'], () => {
+      arc.withFlags({ boolean:true }, () => {
         expect(adaptiveValue instanceof Boolean).to.equal(true);
       });
     });
@@ -203,7 +165,7 @@ describe('AdaptiveRequireHook', () => {
   describe('objects', () => {
     it('should return non-configurable property descriptors as configurable', function() {
       let adaptiveValue = require('./objects');
-      arc.setFlagsForContext(['config'], () => {
+      arc.withFlags({ config:true }, () => {
         let foo = Object.getOwnPropertyDescriptor(adaptiveValue, 'foo');
         let bar = Object.getOwnPropertyDescriptor(adaptiveValue, 'bar');
         let missing = Object.getOwnPropertyDescriptor(adaptiveValue, 'missing');
@@ -225,7 +187,7 @@ describe('AdaptiveRequireHook', () => {
     it('should allow inspecting - and therefore logging', function() {
       let util = require('util');
       let adaptiveValue = require('./objects');
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(util.inspect(adaptiveValue)).to.equal(
           "{ a: 1, b: 2, c: { hello: 'world', foo: 'bar' } }"
         );
@@ -236,14 +198,14 @@ describe('AdaptiveRequireHook', () => {
   describe('functions', () => {
     it('should resolve adaptive functions', function() {
       let fn = require('./functions');
-      arc.setFlagsForContext([], () => {
+      arc.withFlags({}, () => {
         expect(fn()).to.equal(123);
       });
     });
 
     it('should resolve adaptive functions', function() {
       let fn = require('./functions');
-      arc.setFlagsForContext(['456'], () => {
+      arc.withFlags({ 456:true }, () => {
         expect(fn()).to.equal(456);
       });
     });
@@ -316,7 +278,7 @@ describe('AdaptiveProxy', () => {
       }
     });
     let c = proxy.a.b.c;
-    arc.setFlagsForContext(['*'], () => {
+    arc.withFlags({ '*':true }, () => {
       expect(c()).to.equal(456);
     });
   });
@@ -331,7 +293,7 @@ describe('AdaptiveProxy', () => {
       }
     });
     let c = proxy.a.b.c;
-    arc.setFlagsForContext(['*'], () => {
+    arc.withFlags({ '*':true }, () => {
       expect(''+c).to.equal('def');
       expect(c).to.not.equal('def');
       expect(c == 'def').to.equal(true);
@@ -353,7 +315,7 @@ describe('AdaptiveProxy', () => {
 
     expect(proxy.a).to.not.equal(defaultValue.a);
     expect(proxy.a).to.not.equal(matchedValue.a);
-    arc.setFlagsForContext(['*'], () => {
+    arc.withFlags({ '*':true }, () => {
       expect(proxy.a).to.not.equal(defaultValue.a);
       expect(proxy.a).to.equal(matchedValue.a);
     });

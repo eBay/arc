@@ -5,7 +5,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "postinstall": "lerna bootstrap --hoist --no-ci",
     "test": "NODE_OPTIONS=--openssl-legacy-provider nyc mocha packages/arc-*/test* --timeout=30000",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },

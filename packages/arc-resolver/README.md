@@ -40,7 +40,7 @@ import Resolver from 'arc-resolver';
 ### <a name="matchset"></a> `new MatchSet(matches)` an [iterable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols)
 
 ```js
-import { MatchSet} from 'arc-resolver';
+import { MatchSet } from 'arc-resolver';
 ```
 
 - **`matches`** (_required_): an `Array` of `Object`s with the keys `flags` and `value`:
@@ -56,8 +56,6 @@ import { MatchSet} from 'arc-resolver';
 
 - **`match(flags)`**: return the matching `value` for a flagset
   - `flags`: an `Object` where each key represents a flag and the value is a boolean indicating whether that flag is active
-- **`map(fn)`**: return a new `MatchSet` with the mapped values
-  - `fn`: a `Function` that is passed `value`, `flags` and `index`, returns a new `value`
 
 ## Defining flags
 
