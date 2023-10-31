@@ -141,15 +141,13 @@ function getPath(object, path) {
 }
 
 function toConfigurable(obj) {
-  let isConfigurable = Object.isExtensible(obj);
   const props = Object.getOwnPropertyDescriptors(obj);
-  if (isConfigurable) {
-    for (const key in props) {
-      const prop = props[key];
-      if (prop.configurable === false) {
-        prop.configurable = true;
-        isConfigurable = false;
-      }
+  let isConfigurable = Object.isExtensible(obj);
+  for (const key in props) {
+    const prop = props[key];
+    if (prop.configurable === false) {
+      prop.configurable = true;
+      isConfigurable = false;
     }
   }
 
