@@ -1,4 +1,5 @@
 let arc = require("./index");
+let { hasOwnProperty } = Object.prototype;
 let fnToString = Function.prototype.toString;
 let kToPrimitive = Symbol.toPrimitive;
 
@@ -65,7 +66,7 @@ function createAdaptiveProxy(matches, path, defaultTarget) {
 
         if (
           typeof value === "function" &&
-          property in resolvedTarget.__proto__ &&
+          !hasOwnProperty.call(resolvedTarget, property) &&
           isNativeCode(value)
         ) {
           // bind functions to the target so that built in types work properly
