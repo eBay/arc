@@ -26,13 +26,44 @@ The `arc-server` api is split into 3 submodules:
 ### `arc-server`
 
 ```js
-import { withFlags, getFlags } from "arc-server";
+import { withFlags, setFlags, getFlags } from "arc-server";
 ```
 
-- `withFlags<T>(flags, fn: () => T): T`: sets arc flags for the synchronous execution of the provided `fn` and then persists the flags through any following asynchronous calls. Returns the result of calling `fn`.
+- `setFlags(flags): void`: sets arc flags for the current synchronous execution and then persists the flags through any following asynchronous calls.
+- `withFlags<T>(flags, fn: () => T): T`: sets arc flags for the synchronous execution of the provided `fn` and then persists the flags through asynchronous calls made within the provided `fn`. Returns the result of calling `fn`.
 - `getFlags(): Record<string, boolean> | undefined`: gets the currently set flags or undefined.
 
 #### Example
+
+### setFlags
+
+```js
+import { setFlags, getFlags } from "arc-server";
+
+function start(flags, delay) {
+  setFlags(flags);
+  wait(delay);
+}
+
+function wait(delay) {
+  setTimeout(logFlags, delay);
+}
+
+function logFlags() {
+  // The flags weren't passed here, but we can get them from the context
+  console.log(getFlags());
+}
+
+start({ foo: true }, 100);
+start({ baz: true }, 10);
+start({ baz: true }, 50);
+
+// After 10ms, { bar:true } is logged
+// After 50ms, { baz:true } is logged
+// After 100ms, { foo:true } is logged
+```
+
+### withFlags
 
 ```js
 import { withFlags, getFlags } from "arc-server";
