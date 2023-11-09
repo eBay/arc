@@ -1,6 +1,6 @@
 {
   "name": "arc-server",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "description": "",
   "main": "index.js",
   "author": "Michael Rawlings <ml.rawlings@gmail.com>",
