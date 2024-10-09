@@ -195,6 +195,16 @@ describe('AdaptiveRequireHook', () => {
     });
   });
 
+  describe('arrays', () => {
+    it('should preserve the array type', function() {
+      let adaptiveValue = require('./arrays');
+      arc.withFlags({ adapt:true }, () => {
+        expect(adaptiveValue).to.eql([4,5,6]);
+        expect(Array.isArray(adaptiveValue)).to.equal(true);
+      });
+    });
+  });
+
   describe('functions', () => {
     it('should resolve adaptive functions', function() {
       let fn = require('./functions');

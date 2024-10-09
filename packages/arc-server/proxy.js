@@ -142,6 +142,10 @@ function getPath(object, path) {
 }
 
 function toConfigurable(obj) {
+  if (Array.isArray(obj)) {
+    return obj
+  }
+
   const props = Object.getOwnPropertyDescriptors(obj);
   let isConfigurable = Object.isExtensible(obj);
   for (const key in props) {
