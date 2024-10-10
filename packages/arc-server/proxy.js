@@ -93,17 +93,12 @@ function createAdaptiveProxy(matches, path, defaultTarget) {
         );
 
         if (descriptor && descriptor.configurable === false) {
-          if (descriptor.writable === false) {
-            descriptor.configurable = true;
-          } else {
-            const targetDescriptor = Reflect.getOwnPropertyDescriptor(
-              target,
-              property,
-            );
-            if (targetDescriptor && targetDescriptor.configurable) {
-              descriptor.configurable = true;
-            }
-          }
+          const originalTargetDescriptor = Reflect.getOwnPropertyDescriptor(
+            target,
+            property,
+          );
+          descriptor.configurable =
+            !originalTargetDescriptor || originalTargetDescriptor.configurable;
         }
 
         return descriptor;
@@ -158,7 +153,7 @@ function toConfigurable(obj) {
   let isConfigurable = Object.isExtensible(obj);
   for (const key in props) {
     const prop = props[key];
-    if (prop.configurable === false && props.writable === false) {
+    if (prop.configurable === false) {
       prop.configurable = true;
       isConfigurable = false;
     }
