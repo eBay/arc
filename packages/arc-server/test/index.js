@@ -163,11 +163,12 @@ describe('AdaptiveRequireHook', () => {
   });
 
   describe('objects', () => {
-    it('should return non-configurable property descriptors as configurable', function() {
+    it('should return not-configurable property descriptors as configurable when also not writable', function() {
       let adaptiveValue = require('./objects');
       arc.withFlags({ config:true }, () => {
         let foo = Object.getOwnPropertyDescriptor(adaptiveValue, 'foo');
         let bar = Object.getOwnPropertyDescriptor(adaptiveValue, 'bar');
+        let baz = Object.getOwnPropertyDescriptor(adaptiveValue, 'baz');
         let missing = Object.getOwnPropertyDescriptor(adaptiveValue, 'missing');
         expect(foo).to.eql({
           value: 1,
@@ -181,6 +182,12 @@ describe('AdaptiveRequireHook', () => {
           enumerable: false,
           configurable: true
         });
+        expect(baz).to.eql({
+          value: 3,
+          writable: true,
+          enumerable: false,
+          configurable: true
+        });
         expect(missing).to.equal(undefined);
       });
     });
@@ -191,6 +198,28 @@ describe('AdaptiveRequireHook', () => {
         expect(util.inspect(adaptiveValue)).to.equal(
           "{ a: 1, b: 2, c: { hello: 'world', foo: 'bar' } }"
         );
+      });
+    });
+  });
+
+  describe('arrays', () => {
+    it('should preserve the array type', function() {
+      let adaptiveValue = require('./arrays');
+      arc.withFlags({ adapt:true }, () => {
+        expect(adaptiveValue).to.eql([4,5,6]);
+        expect(Array.isArray(adaptiveValue)).to.equal(true);
+      });
+    });
+    it('should return length as non-configurable', function() {
+      let adaptiveValue = require('./arrays');
+      arc.withFlags({ adapt:true }, () => {
+        const length = Object.getOwnPropertyDescriptor(adaptiveValue, 'length');
+        expect(length).to.eql({
+          value: 3,
+          writable: true,
+          enumerable: false,
+          configurable: false
+        });
       });
     });
   });
