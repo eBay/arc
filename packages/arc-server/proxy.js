@@ -24,27 +24,27 @@ function createAdaptiveProxy(matches, path, defaultTarget) {
         return Reflect.apply(
           resolveTarget(target, arc.getFlags()),
           thisArg,
-          argumentsList
+          argumentsList,
         );
       },
       construct(target, argumentsList, newTarget) {
         return Reflect.construct(
           resolveTarget(target, arc.getFlags()),
           argumentsList,
-          newTarget
+          newTarget,
         );
       },
       defineProperty(target, property, descriptor) {
         return Reflect.defineProperty(
           resolveTarget(target, arc.getFlags()),
           property,
-          descriptor
+          descriptor,
         );
       },
       deleteProperty(target, property) {
         return Reflect.deleteProperty(
           resolveTarget(target, arc.getFlags()),
-          property
+          property,
         );
       },
       get(target, property) {
@@ -61,7 +61,7 @@ function createAdaptiveProxy(matches, path, defaultTarget) {
         let value = Reflect.get(
           flags ? Object(resolvedTarget) : target,
           property,
-          resolvedTarget
+          resolvedTarget,
         );
 
         if (
@@ -82,19 +82,27 @@ function createAdaptiveProxy(matches, path, defaultTarget) {
           (proxyCache[property] = createAdaptiveProxy(
             matches,
             [...path, property],
-            value
+            value,
           ))
         );
       },
       getOwnPropertyDescriptor(target, property) {
         const descriptor = Reflect.getOwnPropertyDescriptor(
           resolveTarget(target, arc.getFlags()),
-          property
+          property,
         );
 
-        if (descriptor) {
-          if (descriptor.configurable === false) {
+        if (descriptor && descriptor.configurable === false) {
+          if (descriptor.writable === false) {
             descriptor.configurable = true;
+          } else {
+            const targetDescriptor = Reflect.getOwnPropertyDescriptor(
+              target,
+              property,
+            );
+            if (targetDescriptor && targetDescriptor.configurable) {
+              descriptor.configurable = true;
+            }
           }
         }
 
@@ -122,10 +130,10 @@ function createAdaptiveProxy(matches, path, defaultTarget) {
       setPrototypeOf(target, proto) {
         return Reflect.setPrototypeOf(
           resolveTarget(target, arc.getFlags()),
-          proto
+          proto,
         );
       },
-    }
+    },
   );
 }
 
@@ -143,14 +151,14 @@ function getPath(object, path) {
 
 function toConfigurable(obj) {
   if (Array.isArray(obj)) {
-    return obj
+    return obj;
   }
 
   const props = Object.getOwnPropertyDescriptors(obj);
   let isConfigurable = Object.isExtensible(obj);
   for (const key in props) {
     const prop = props[key];
-    if (prop.configurable === false) {
+    if (prop.configurable === false && props.writable === false) {
       prop.configurable = true;
       isConfigurable = false;
     }

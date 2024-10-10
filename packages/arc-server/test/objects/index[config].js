@@ -10,4 +10,10 @@ Object.defineProperty(object, 'bar', {
   configurable: true
 });
 
+Object.defineProperty(object, 'baz', {
+  value: 3,
+  configurable: false,
+  writable: true
+});
+
 module.exports = object;
